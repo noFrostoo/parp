@@ -11,9 +11,9 @@ kup piwo
 
 
  */
-:- dynamic i_am_at/1, at/2, holding/1.
+:- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1.
 :- retractall(at(_, _)), retractall(i_am_at(_)), retractall(alive(_)), retractall(has(_)).
-
+:- discontiguous describe/1, path/3, describe/1, be/2, chat/1, at/2.
 
 /* These rules describe the various rooms.  Depending on
    circumstances, a room may have more than one description. */
@@ -40,7 +40,7 @@ at(totem,swiętyDąb).
 be(wiesniak ,swiętyDąb).
 
 path(swiętyDąb, n, wieśGrobla).
-path(swiętyDąb, n, wieśGrobla).
+path(swiętyDąb, w, polanaKoloChatyDrwali).
 forbiddenMove(polanaKoloChatyDrwali).
 
 /* lokacja 2 - Wieś Grobla */
@@ -57,10 +57,11 @@ describe(studnia) :- write("Znalezienie miecza *Gnomski Gwyhyr*"), nl.
 describe(tablicaOgłoszeń) :- write("Gerwant znajduje Zlecenie na *Potwora Lasu* z podpisem *sołtys* wsi Grobla"), nl.
 
 at(studnia, wieśGrobla).
-at(tablicaOgłoszeń, wieśGrobla)
+at(tablicaOgłoszeń, wieśGrobla).
 
-path(wieśGrobla, domSołtysa,domSołtysa).
+path(wieśGrobla, domSołtysa, domSołtysa).
 path(wieśGrobla, karczma, karczma).
+path(wieśGrobla, s, swiętyDąb).
 
 /* lokacja 3 - Dom sołtysa */
 
@@ -91,10 +92,10 @@ Rivierijczyk może wyjść na:
 be(drwale, karczma).
 be(karczmarz, karczma).
 
-chat(drwale) :- write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu"), retract(forbiddenMove(polanaKoloChatyDrwali)) nl.
+chat(drwale) :- write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu"), retract(forbiddenMove(polanaKoloChatyDrwali)), nl.
 chat(karczmarz) :- write("Pordóżniku, zapraszam na piwo"), nl.
 
-path(karczmarz, wyjdz, wieśGrobla).
+path(karczma, wyjdz, wieśGrobla).
 
 
 
