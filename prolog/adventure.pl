@@ -71,7 +71,7 @@ Zabójca potworów wchodzi do domu sołtysa
 Gerwant z Riviery może udać się na:
 - zewnątrz"), nl.
 
-rozmawiaj(sołtys) :- write("Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*"), nl.
+rozmawiaj(sołtys) :- write("Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o atak"), nl.
 be(sołtys, domSołtysa).
 
 path(domSołtysa, zewnątrz, wieśGrobla).
@@ -91,7 +91,7 @@ Rivierijczyk może wyjść na:
 rozmawiaj(drwale) :- write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło rozmawiajy drwali na *wschód* od Świętego Dębu"), retract(forbiddenMove(polanaKolorozmawiajyDrwali)), nl.
 be(drwale, karczma).
 
-rozmawiaj(karczmarz) :- write("Pordóżniku, zapraszam na piwo!"), nl.
+rozmawiaj(karczmarz) :- write("Podróżniku, zapraszam na piwo!"), nl.
 be(karczmarz, karczma).
 
 path(karczma, zewnątrz, wieśGrobla).
