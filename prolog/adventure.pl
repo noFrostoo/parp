@@ -1,207 +1,249 @@
 /* <The name of this game>, by <your name goes here>. */
- 
-/* TODO:
-games fackts
-inventory
-
-interact 
-talk
-invetory
-kup piwo
-
-
- */
-:- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1.
+:- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1, wEkwipunku/1.
 :- retractall(at(_, _)), retractall(i_am_at(_)), retractall(alive(_)), retractall(has(_)).
-:- discontiguous describe/1, path/3, describe/1, be/2, chat/1, at/2.
+:- discontiguous obejrzyj/1, path/3, obejrzyj/1, be/2, rozmawiaj/1, at/2, wEkwipunku/1.
 
-/* These rules describe the various rooms.  Depending on
-   circumstances, a room may have more than one description. */
-/* things to implement */
+/*==========================================
+============================================
 
-/* lokacja 1 - swiętyDąb */
-i_am_at(swiętyDąb).
+                GAME WORLD
 
-describe(swiętyDąb) :- write("
+============================================
+==========================================*/
+
+/*=================== 
+lokacja 1 - świętyDąb 
+===================*/
+i_am_at(świętyDąb).
+obejrzyj(świętyDąb) :- write("
 Gerwant z Riviery podróżując szlakiem dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
 
 Zabójca potworów może udać się na:
-- północ
-"), nl.
+- północ"), (forbiddenMove(polanaKolorozmawiajyDrwali)-> nl; nl, write("- wschód"), nl).
 
-describe(cialo) :- write("Analiza Wiedźmina: Rany od szponów i kłów"), nl.
-describe(totem) :- write("Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie."), nl.
+obejrzyj(ciało) :- write("Analiza Wiedźmina: Rany od szponów i kłów"), nl.
+at(ciało,świętyDąb).
 
-chat(wiesniak) :- write("Wieśniak jest sparaliżowane strachem i majaczy"), nl.
+obejrzyj(totem) :- write("Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie."), nl.
+at(totem,świętyDąb).
 
-at(cialo,swiętyDąb).
-at(totem,swiętyDąb).
+rozmawiaj(wieśniak) :- write("Wieśniak jest sparaliżowany strachem i majaczy."), nl.
+be(wieśniak, świętyDąb).
 
-be(wiesniak ,swiętyDąb).
+path(świętyDąb, północ, wieśGrobla).
+path(świętyDąb, wschód, polanaKolorozmawiajyDrwali).
+forbiddenMove(polanaKolorozmawiajyDrwali).
 
-path(swiętyDąb, n, wieśGrobla).
-path(swiętyDąb, w, polanaKoloChatyDrwali).
-forbiddenMove(polanaKoloChatyDrwali).
+/*===================== 
+lokacja 2 - Wieś Grobla 
+=====================*/
 
-/* lokacja 2 - Wieś Grobla */
-
-describe(wieśGrobla) :- write("
+obejrzyj(wieśGrobla) :- write("
 Gerwant dociera do Wsi Grobla.
 
 Wiedźmak może udać się do:
-- dom Sołtysa (komenda odwiedzSołtysa)
-- karczma (komenda wejdzDoKarczmy)
-"), nl.
+- dom Sołtysa
+- karczma
+- południe"), nl.
 
-describe(studnia) :- write("Znalezienie miecza *Gnomski Gwyhyr*"), nl.
-describe(tablicaOgłoszeń) :- write("Gerwant znajduje Zlecenie na *Potwora Lasu* z podpisem *sołtys* wsi Grobla"), nl.
-
+obejrzyj(studnia) :- write("Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni"), nl.
 at(studnia, wieśGrobla).
+
+at(gnomskiGwyhyr, wieśGrobla).
+wEkwipunku(gnomskiGwyhyr) :- write("Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy."), nl.
+ukrytyPrzedmiot(gnomskiGwyhyr).
+
+
+obejrzyj(tablicaOgłoszeń) :- write("Gerwant znajduje zlecenie na Potwora Lasu z podpisem *sołtys* wsi Grobla"), nl.
 at(tablicaOgłoszeń, wieśGrobla).
 
 path(wieśGrobla, domSołtysa, domSołtysa).
 path(wieśGrobla, karczma, karczma).
-path(wieśGrobla, s, swiętyDąb).
+path(wieśGrobla, południe, świętyDąb).
 
-/* lokacja 3 - Dom sołtysa */
+/*===================== 
+lokacja 3 - Dom sołtysa 
+=====================*/
 
-describe(domSołtysa) :- write("
+obejrzyj(domSołtysa) :- write("
 Zabójca potworów wchodzi do domu sołtysa
 
 Gerwant z Riviery może udać się na:
-- zewnątrz (komenda wyjdz)
-"), nl.
+- zewnątrz"), nl.
 
+rozmawiaj(sołtys) :- write("Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*"), nl.
 be(sołtys, domSołtysa).
 
-chat(sołtys) :- write("Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*"), nl.
+path(domSołtysa, zewnątrz, wieśGrobla).
 
-path(domSołtysa, wyjdz, wieśGrobla).
+/*=====================
+lokacja 4 - Karczma
+=====================*/
 
-/* lokacja 4 - Wieś Grobla */
-
-describe(karczma) :- write("
+obejrzyj(karczma) :- write("
 Gerwant wchodzi do Karczmy
 
-Możesz kupic piwo(komenda buy_beer)
+Możesz kupic piwo(komenda kupPiwo)
 
 Rivierijczyk może wyjść na:
-- zewnątrz (komenda wyjdz)
-"), nl.
+- zewnątrz"), nl.
 
+rozmawiaj(drwale) :- write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło rozmawiajy drwali na *wschód* od Świętego Dębu"), retract(forbiddenMove(polanaKolorozmawiajyDrwali)), nl.
 be(drwale, karczma).
+
+rozmawiaj(karczmarz) :- write("Pordóżniku, zapraszam na piwo!"), nl.
 be(karczmarz, karczma).
 
-chat(drwale) :- write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu"), retract(forbiddenMove(polanaKoloChatyDrwali)), nl.
-chat(karczmarz) :- write("Pordóżniku, zapraszam na piwo"), nl.
-
-path(karczma, wyjdz, wieśGrobla).
+path(karczma, zewnątrz, wieśGrobla).
 
 
+/*==================================
+lokacja 5 - Polana Koło Chaty Drwali
+==================================*/
+
+obejrzyj(polanaKolorozmawiajyDrwali) :- write("
+Zabójca potworów znajduje się na polanie wokoło Chaty Drwali.
+
+Gerwant z Riviery pójść w tych kierunkach:
+- chata
+- zachód
+- puszcza"), nl.
+
+obejrzyj(trup) :- write('Analiza Gerwanta z Riviery: "Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki"'), nl.
+at(trup, polanaKolorozmawiajyDrwali).
+
+path(polanaKolorozmawiajyDrwali, zachód, świętyDąb).
+path(polanaKolorozmawiajyDrwali, puszcza, wielkaPuszcza).
+path(polanaKolorozmawiajyDrwali, chata, chataDrwali).
+
+
+/*======================
+lokacja 6 - Chata Drwali
+======================*/
+
+obejrzyj(chataDrwali) :- write("
+Łowca potworów wchodzi do Chaty Drwali
+
+Gerwant może wyjść na: 
+- zewnątrz"), nl.
+
+obejrzyj(topór) :- write('Analiza Gerwanta z Riviery: "W rysach topora zastała się zaschnięta krew zwierzęcia"'), nl.
+at(topór, chataDrwali).
+
+wEkwipunku(mieszek) :- write("Mieszek pełen złota. W środku znajduje się 10 monet. Wystarczy na piwo."), nl.
+at(mieszek, chataDrwali).
+
+obejrzyj(czaszka) :- write('Analiza Gerwanta z Riviery: "Ta czaszka należy do młodego niedźwiedzia"'), nl.
+at(czaszka, chataDrwali).
+
+path(chataDrwali, zewnątrz, polanaKolorozmawiajyDrwali).
+
+
+/*=================
+lokacja 7 - Puszcza
+=================*/
+
+obejrzyj(wielkaPuszcza) :- write("
+Mistrz Gerwant wkracza w samo serce puszczy.
+
+Widźmak może się udać się w tych kierunkach:
+- polana
+- pieczara"), nl.
+
+obejrzyj(statua) :- write('Analiza Gerwanta z Riviery: "Medalion Drży. To magiczny totem. Podobny totem widziałem pod Świętym dębem". Wiedźmin postanawia przeczytać bestiariusz. W wiedźmińskim almanachu Gerwant znajduje informację, że magiczne totemy to znak rozpoznawczny terytorium potwora zwanego jako *Leszy*.'), nl.
+at(statua, wielkaPuszcza).
 
 
 
+path(wielkaPuszcza, polana, polanaKolorozmawiajyDrwali).
+path(wielkaPuszcza, pieczara, pieczaraBestii).
 
 
+/*=================
+lokacja 8 - Pieczara Bestii
+=================*/
 
-in_inventory(kubek) :- write("KUBEK, staty: ."), nl.
-in_inventory(lll) :- write("lll, staty: ."), nl.
+obejrzyj(pieczaraBestii) :- write("
+Gerwant z Riviery wchodzi do pieczary. Gerwant wnioskuje, że natrafił na leże potwora. Monstrum nie ma w jaskini, więc może na niego zaczekać (komenda przygotujSięDoWalki). Aczkolwiek zanim wiedźmin zdecyduje się na spotkanie oko w oko z bestia powinien się porządnie przygotować, a zatem musi wywnioskować z jakim potworem ma do czynienia.
 
+Wiedźmak może wrócić do:
+- puszcza"), nl.
+
+path(pieczaraBestii, puszcza, wielkaPuszcza).
+
+
+/*==========================================
+============================================
+
+                GAME COMMANDS
+
+============================================
+==========================================*/
+
+
+/* debug */
+path(świętyDąb, drogaCzitera, pieczaraBestii).
+
+przygotujSięDoWalki :-
+        i_am_at(pieczaraBestii),
+        write("Do walki z jakim potworem musi się przygotować Gerwant z Riviery?"), nl,
+        read(X),
+        (X == "Leszy" -> write("Gerwant poprawnie wywnioskował, że czeka go starcie z Leszym i odpowiednio się przygotował. Dzięki temu wygrał walkę"), finish; 
+        write("Gerwant niepoprawnie wywnioskował z jakim potworem czeka go starcie."), nl, die).
 
 
 interact(X) :-
         i_am_at(Place),
         at(X, Place),
-        describe(X).
+        obejrzyj(X).
 
 talk(X) :-
         i_am_at(Place),
         be(X, Place),
-        chat(X).
+        rozmawiaj(X).
 
-buy_beer :-
+kupPiwo :-
         i_am_at(karczma),
-        has(mieszek),
-        write("Gerwant pije piwo").
+        (has(mieszek) -> 
+                write("Gerwant pije piwo"), nl, utrać(mieszek); 
+                write("Nie masz wystarczająco złota")
+        ).
 
-buy_beer :-
-        write("Nie masz tyle hajsu").
-
-/* These rules describe how to pick up an object. */
-
-take(X) :-
-        holding(X),
-        write('You''re already holding it!'),
-        !, nl.
-
-take(X) :-
-        i_am_at(Place),
-        at(X, Place),
-        retract(at(X, Place)),
-        assert(holding(X)),
-        write('OK.'),
-        !, nl.
-
-take(_) :-
-        write('I don''t see it here.'),
-        nl.
+/* These rules define the direction letters as calls to idź/1. */
 
 
-/* These rules describe how to put down an object. */
+/* redundant */
+n :- idź(n).
 
-drop(X) :-
-        holding(X),
-        i_am_at(Place),
-        retract(holding(X)),
-        assert(at(X, Place)),
-        write('OK.'),
-        !, nl.
+s :- idź(s).
 
-drop(_) :-
-        write('You aren''t holding it!'),
-        nl.
+e :- idź(e).
 
+w :- idź(w).
 
-/* These rules define the direction letters as calls to go/1. */
+wejdzDoKarczmy :- idź(karczma).
 
-n :- go(n).
+odwiedzSołtysa :- idź(domSołtysa).
 
-s :- go(s).
-
-e :- go(e).
-
-w :- go(w).
-
-wejdzDoKarczmy :- go(karczma).
-
-odwiedzSołtysa :- go(domSołtysa).
-
-wyjdz :- go(wyjdz).
 
 /* This rule tells how to move in a given direction. */
 
-go(Direction) :-
+idź(Direction) :-
         i_am_at(Here),
         path(Here, Direction, There),
-        forbiddenMove(There),
-        write('Nie mozesz tam iść').
-
-go(Direction) :-
-        i_am_at(Here),
-        path(Here, Direction, There),
-        retract(i_am_at(Here)),
-        assert(i_am_at(There)),
-        !, look.
-
-go(_) :-
-        write('Nie mozesz tam iść').
+        (not(forbiddenMove(There)) -> 
+                retract(i_am_at(Here)), assert(i_am_at(There)), !, rozejrzyjSię; 
+                write('Nie możesz tam iść')
+        ).
+idź(_) :-
+        write('Nie możesz tam iść').
 
 
-/* This rule tells how to look about you. */
+/* This rule tells how to rozejrzyjSię about you. */
 
-look :-
+rozejrzyjSię :-
         i_am_at(Place),
-        describe(Place),
+        obejrzyj(Place),
         nl,
         notice_objects_at(Place),
         notice_people_at(Place),
@@ -213,14 +255,14 @@ look :-
 
 notice_objects_at(Place) :-
         at(X, Place),
-        write('Wiedźmin zauważa:'), write(X), write(' tutaj.'), nl,
+        not(ukrytyPrzedmiot(X)), write('Wiedźmin zauważa: '), write(X), nl,
         fail.
 
 notice_objects_at(_).
 
 notice_people_at(Place) :-
         be(X, Place),
-        write('Wiedźmin może pogadać z: '), write(X), write(' tutaj.'), nl,
+        write('Wiedźmin może porozmawiać z: '), write(X), nl,
         fail.
 
 notice_people_at(_).
@@ -228,44 +270,35 @@ notice_people_at(_).
 
 /* inventory */
 
-list_items :-
-        forall(has(X), in_inventory(X)).
+ekwipunek :-
+        forall(has(X), (write(X), write('-'), wEkwipunku(X), nl)).
 
 
-inventory(X) :-
+podnieś(X) :-
         i_am_at(Place),
         at(X, Place),
         retract(at(X, Place)),
         assert(has(X)),
-        write('You took item into inventory.'),
+        write('Wziąłeś przedmiot '),
+        write(X),
         !, nl.
 
-remove_item(X) :- 
+utrać(X) :- 
         has(X),
         i_am_at(Place),
         retract(has(X)),
         assert(at(X, Place)),
-        write('You droped item.'),
+        write('Utraciłeś przedmiot '),
+        write(X),
         !, nl.
 
-/*FIXME!!!!!!!: if holds item */
-equip_item(_) :-
-        holding(item),
-        write('You are holding an item.'),
-        !, nl.
-
-equip_item(X) :-
-        has(X),
-        retract(has(X)),
-        assert(holding(X)),
-        write('You droped item.'),
-        !, nl.
 
 
 
 /* This rule tells how to die. */
 
 die :-
+        write('Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.'),
         finish.
 
 
@@ -276,32 +309,26 @@ die :-
 
 finish :-
         nl,
-        write('The game is over. Please enter the "halt." command.'),
-        nl.
+        halt.
 
 
 /* This rule just writes out game instructions. */
 
 instructions :-
         nl,
-        write('Enter commands using standard Prolog syntax.'), nl,
-        write('Available commands are:'), nl,
-        write('start.             -- to start the game.'), nl,
-        write('n.  s.  e.  w.     -- to go in that direction.'), nl,
-        write('take(Object).      -- to pick up an object.'), nl,
-        write('drop(Object).      -- to put down an object.'), nl,
-        write('look.              -- to look around you again.'), nl,
-        write('instructions.      -- to see this message again.'), nl,
-        write('halt.              -- to end the game and quit.'), nl,
+        write('Wprowadź komendy zgodnie ze składnią prologa.'), nl,
+        write('Dostępne komendy:'), nl,
+        write('idź(kierunek).           -- by pójść w danym kierunku.'), nl,
+        write('podnieś(obiekt).         -- by podnieść przedmiot.'), nl,
+        write('utrać(obiekt).           -- by utracić przedmiot.'), nl,
+        write('ekwipunek.               -- by sprawdzić swój ekwipunek.'), nl,
+        write('obejrzyj(obiekt).        -- by obejrzeć przedmiot.'), nl,
+        write('rozmawiaj(npc).          -- by porozmawiać z NPC.'), nl,
+        write('rozejrzyjSię.            -- by dowiedzieć się, gdzie jesteś.'), nl,
         nl.
-
 
 /* This rule prints out instructions and tells where you are. */
 
 start :-
         instructions,
-        look.
-
-
-
-
+        rozejrzyjSię.
