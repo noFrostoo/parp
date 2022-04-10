@@ -16,7 +16,8 @@ lokacja 1 - świętyDąb
 ===================*/
 i_am_at(świętyDąb).
 obejrzyj(świętyDąb) :- write("
-Gerwant z Riviery podróżując szlakiem dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
+Gerwant z Riviery, szkoły nosacza, podróżuje już szlakiem wiele dni. Towarzyszy mu jedynie deszcz i jego wierny koń Knebel. Pewnego popołudnia dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
+
 
 Zabójca potworów może udać się na:
 - północ"), (forbiddenMove(polanaKolorozmawiajyDrwali)-> nl; nl, write("- wschód"), nl).
