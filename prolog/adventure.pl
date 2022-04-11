@@ -1,7 +1,7 @@
 /* <The name of this game>, by <your name goes here>. */
-:- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1, wEkwipunku/1.
+:- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1, wEkwipunku/1, spytaj/2, obejrzyj/1, rozmawiaj/1.
 :- retractall(at(_, _)), retractall(i_am_at(_)), retractall(alive(_)), retractall(has(_)).
-:- discontiguous obejrzyj/1, path/3, obejrzyj/1, be/2, rozmawiaj/1, at/2, wEkwipunku/1.
+:- discontiguous obejrzyj/1, obejrzyjOK/1, path/3, obejrzyjOK/1, be/2, rozmawiajOK/1, at/2, wEkwipunku/1, spytajOK/2.
 
 /*==========================================
 ============================================
@@ -15,31 +15,31 @@
 lokacja 1 - świętyDąb 
 ===================*/
 i_am_at(świętyDąb).
-obejrzyj(świętyDąb) :- write("
+obejrzyjOK(świętyDąb) :- write("
 Gerwant z Riviery, szkoły nosacza, podróżuje już szlakiem wiele dni. Towarzyszy mu jedynie deszcz i jego wierny koń Knebel. Pewnego popołudnia dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
 
 
 Zabójca potworów może udać się na:
-- północ"), (forbiddenMove(polanaKolorozmawiajyDrwali)-> nl; nl, write("- wschód"), nl).
+- północ"), (forbiddenMove(polanaKolorozmawiajOKyDrwali)-> nl; nl, write("- wschód"), nl).
 
-obejrzyj(ciało) :- write("Analiza Wiedźmina: Rany od szponów i kłów"), nl.
+obejrzyjOK(ciało) :- write("Analiza Wiedźmina: Rany od szponów i kłów"), nl.
 at(ciało,świętyDąb).
 
-obejrzyj(totem) :- write("Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie."), nl.
+obejrzyjOK(totem) :- write("Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie."), nl.
 at(totem,świętyDąb).
 
-rozmawiaj(wieśniak) :- write("Wieśniak jest sparaliżowany strachem i majaczy."), nl.
+rozmawiajOK(wieśniak) :- write("Wieśniak jest sparaliżowany strachem i majaczy."), nl.
 be(wieśniak, świętyDąb).
 
 path(świętyDąb, północ, wieśGrobla).
-path(świętyDąb, wschód, polanaKolorozmawiajyDrwali).
-forbiddenMove(polanaKolorozmawiajyDrwali).
+path(świętyDąb, wschód, polanaKolorozmawiajOKyDrwali).
+forbiddenMove(polanaKolorozmawiajOKyDrwali).
 
 /*===================== 
 lokacja 2 - Wieś Grobla 
 =====================*/
 
-obejrzyj(wieśGrobla) :- write("
+obejrzyjOK(wieśGrobla) :- write("
 Gerwant dociera do Wsi Grobla.
 
 Wiedźmak może udać się do:
@@ -47,7 +47,7 @@ Wiedźmak może udać się do:
 - karczma
 - południe"), nl.
 
-obejrzyj(studnia) :- write("Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni"), nl.
+obejrzyjOK(studnia) :- write("Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni"), nl.
 at(studnia, wieśGrobla).
 
 at(gnomskiGwyhyr, wieśGrobla).
@@ -55,7 +55,7 @@ wEkwipunku(gnomskiGwyhyr) :- write("Gwyhyr wykuty przez gnomy. Jest sprawnie nao
 ukrytyPrzedmiot(gnomskiGwyhyr).
 
 
-obejrzyj(tablicaOgłoszeń) :- write("Gerwant znajduje zlecenie na Potwora Lasu z podpisem *sołtys* wsi Grobla"), nl.
+obejrzyjOK(tablicaOgłoszeń) :- write("Gerwant znajduje zlecenie na Potwora Lasu z podpisem *sołtys* wsi Grobla"), nl.
 at(tablicaOgłoszeń, wieśGrobla).
 
 path(wieśGrobla, domSołtysa, domSołtysa).
@@ -66,13 +66,16 @@ path(wieśGrobla, południe, świętyDąb).
 lokacja 3 - Dom sołtysa 
 =====================*/
 
-obejrzyj(domSołtysa) :- write("
+obejrzyjOK(domSołtysa) :- write("
 Zabójca potworów wchodzi do domu sołtysa
 
 Gerwant z Riviery może udać się na:
 - zewnątrz"), nl.
 
-rozmawiaj(sołtys) :- write("Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o atak"), nl.
+rozmawiajOK(sołtys) :- 
+write("Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o atak"), 
+nl.
+
 be(sołtys, domSołtysa).
 
 path(domSołtysa, zewnątrz, wieśGrobla).
@@ -81,7 +84,7 @@ path(domSołtysa, zewnątrz, wieśGrobla).
 lokacja 4 - Karczma
 =====================*/
 
-obejrzyj(karczma) :- write("
+obejrzyjOK(karczma) :- write("
 Gerwant wchodzi do Karczmy
 
 Możesz kupic piwo(komenda kupPiwo)
@@ -89,10 +92,14 @@ Możesz kupic piwo(komenda kupPiwo)
 Rivierijczyk może wyjść na:
 - zewnątrz"), nl.
 
-rozmawiaj(drwale) :- write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło rozmawiajy drwali na *wschód* od Świętego Dębu"), retract(forbiddenMove(polanaKolorozmawiajyDrwali)), nl.
+rozmawiajOK(drwale) :- write("Dobre jest tutaj piwo!"), nl.
+spytajOK(drwale, atak) :- 
+write("Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło rozmawiajOKy drwali na *wschód* od Świętego Dębu"), 
+retract(forbiddenMove(polanaKolorozmawiajOKyDrwali)), 
+nl.
 be(drwale, karczma).
 
-rozmawiaj(karczmarz) :- write("Podróżniku, zapraszam na piwo!"), nl.
+rozmawiajOK(karczmarz) :- write("Podróżniku, zapraszam na piwo!"), nl.
 be(karczmarz, karczma).
 
 path(karczma, zewnątrz, wieśGrobla).
@@ -102,7 +109,7 @@ path(karczma, zewnątrz, wieśGrobla).
 lokacja 5 - Polana Koło Chaty Drwali
 ==================================*/
 
-obejrzyj(polanaKolorozmawiajyDrwali) :- write("
+obejrzyjOK(polanaKolorozmawiajOKyDrwali) :- write("
 Zabójca potworów znajduje się na polanie wokoło Chaty Drwali.
 
 Gerwant z Riviery pójść w tych kierunkach:
@@ -110,53 +117,53 @@ Gerwant z Riviery pójść w tych kierunkach:
 - zachód
 - puszcza"), nl.
 
-obejrzyj(trup) :- write('Analiza Gerwanta z Riviery: "Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki"'), nl.
-at(trup, polanaKolorozmawiajyDrwali).
+obejrzyjOK(trup) :- write('Analiza Gerwanta z Riviery: "Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki"'), nl.
+at(trup, polanaKolorozmawiajOKyDrwali).
 
-path(polanaKolorozmawiajyDrwali, zachód, świętyDąb).
-path(polanaKolorozmawiajyDrwali, puszcza, wielkaPuszcza).
-path(polanaKolorozmawiajyDrwali, chata, chataDrwali).
+path(polanaKolorozmawiajOKyDrwali, zachód, świętyDąb).
+path(polanaKolorozmawiajOKyDrwali, puszcza, wielkaPuszcza).
+path(polanaKolorozmawiajOKyDrwali, chata, chataDrwali).
 
 
 /*======================
 lokacja 6 - Chata Drwali
 ======================*/
 
-obejrzyj(chataDrwali) :- write("
+obejrzyjOK(chataDrwali) :- write("
 Łowca potworów wchodzi do Chaty Drwali
 
 Gerwant może wyjść na: 
 - zewnątrz"), nl.
 
-obejrzyj(topór) :- write('Analiza Gerwanta z Riviery: "W rysach topora zastała się zaschnięta krew zwierzęcia"'), nl.
+obejrzyjOK(topór) :- write('Analiza Gerwanta z Riviery: "W rysach topora zastała się zaschnięta krew zwierzęcia"'), nl.
 at(topór, chataDrwali).
 
 wEkwipunku(mieszek) :- write("Mieszek pełen złota. W środku znajduje się 10 monet. Wystarczy na piwo."), nl.
 at(mieszek, chataDrwali).
 
-obejrzyj(czaszka) :- write('Analiza Gerwanta z Riviery: "Ta czaszka należy do młodego niedźwiedzia"'), nl.
+obejrzyjOK(czaszka) :- write('Analiza Gerwanta z Riviery: "Ta czaszka należy do młodego niedźwiedzia"'), nl.
 at(czaszka, chataDrwali).
 
-path(chataDrwali, zewnątrz, polanaKolorozmawiajyDrwali).
+path(chataDrwali, zewnątrz, polanaKolorozmawiajOKyDrwali).
 
 
 /*=================
 lokacja 7 - Puszcza
 =================*/
 
-obejrzyj(wielkaPuszcza) :- write("
+obejrzyjOK(wielkaPuszcza) :- write("
 Mistrz Gerwant wkracza w samo serce puszczy.
 
 Widźmak może się udać się w tych kierunkach:
 - polana
 - pieczara"), nl.
 
-obejrzyj(statua) :- write('Analiza Gerwanta z Riviery: "Medalion Drży. To magiczny totem. Podobny totem widziałem pod Świętym dębem". Wiedźmin postanawia przeczytać bestiariusz. W wiedźmińskim almanachu Gerwant znajduje informację, że magiczne totemy to znak rozpoznawczny terytorium potwora zwanego jako *Leszy*.'), nl.
+obejrzyjOK(statua) :- write('Analiza Gerwanta z Riviery: "Medalion Drży. To magiczny totem. Podobny totem widziałem pod Świętym dębem". Wiedźmin postanawia przeczytać bestiariusz. W wiedźmińskim almanachu Gerwant znajduje informację, że magiczne totemy to znak rozpoznawczny terytorium potwora zwanego jako *Leszy*.'), nl.
 at(statua, wielkaPuszcza).
 
 
 
-path(wielkaPuszcza, polana, polanaKolorozmawiajyDrwali).
+path(wielkaPuszcza, polana, polanaKolorozmawiajOKyDrwali).
 path(wielkaPuszcza, pieczara, pieczaraBestii).
 
 
@@ -164,7 +171,7 @@ path(wielkaPuszcza, pieczara, pieczaraBestii).
 lokacja 8 - Pieczara Bestii
 =================*/
 
-obejrzyj(pieczaraBestii) :- write("
+obejrzyjOK(pieczaraBestii) :- write("
 Gerwant z Riviery wchodzi do pieczary. Gerwant wnioskuje, że natrafił na leże potwora. Monstrum nie ma w jaskini, więc może na niego zaczekać (komenda przygotujSięDoWalki). Aczkolwiek zanim wiedźmin zdecyduje się na spotkanie oko w oko z bestia powinien się porządnie przygotować, a zatem musi wywnioskować z jakim potworem ma do czynienia.
 
 Wiedźmak może wrócić do:
@@ -185,23 +192,46 @@ path(pieczaraBestii, puszcza, wielkaPuszcza).
 /* debug */
 path(świętyDąb, drogaCzitera, pieczaraBestii).
 
+
 przygotujSięDoWalki :-
         i_am_at(pieczaraBestii),
         write("Do walki z jakim potworem musi się przygotować Gerwant z Riviery?"), nl,
         read(X),
-        (X == "Leszy" -> write("Gerwant poprawnie wywnioskował, że czeka go starcie z Leszym i odpowiednio się przygotował. Dzięki temu wygrał walkę"), finish; 
-        write("Gerwant niepoprawnie wywnioskował z jakim potworem czeka go starcie."), nl, die).
+        (X == "Leszy" -> 
+                write("Gerwant poprawnie wywnioskował, że czeka go starcie z Leszym i odpowiednio się przygotował. Dzięki temu wygrał walkę"), finish; 
+                write("Gerwant niepoprawnie wywnioskował z jakim potworem czeka go starcie."), nl, die
+        ).
 
 
-interact(X) :-
+obejrzyj(X) :-
         i_am_at(Place),
-        at(X, Place),
-        obejrzyj(X).
+        ((at(X, Place) ; be(X, Place)) ->
+                (obejrzyjOK(X) -> 
+                        nl; 
+                        write("Gerwant nie zaobserwował nic ciekawego na temat: "), write(X),nl
+                );
+                write("W lokacji "), write(Place), write(" nie ma "), write(X), nl
+        ).
 
-talk(X) :-
+rozmawiaj(X) :-
         i_am_at(Place),
-        be(X, Place),
-        rozmawiaj(X).
+        ((at(X, Place) ; be(X, Place)) ->
+                (rozmawiajOK(X) -> 
+                        nl; 
+                        write("Próba rozmowy z "), write(X), write(" kończy sie fiaskiem"),nl
+                );
+                write("W lokacji "), write(Place), write(" nie ma "), write(X), nl
+        ).
+
+spytaj(X, Y) :-
+        i_am_at(Place),
+        ((at(X, Place) ; be(X, Place)) ->
+                (spytajOK(X, Y) -> 
+                        nl; 
+                        write(X), write(" nic nie wie o: "), write(Y), nl
+                );
+                write("W lokacji "), write(Place), write(" nie ma "), write(X), nl
+        ).
 
 kupPiwo :-
         i_am_at(karczma),
@@ -244,7 +274,7 @@ idź(_) :-
 
 rozejrzyjSię :-
         i_am_at(Place),
-        obejrzyj(Place),
+        obejrzyjOK(Place),
         nl,
         notice_objects_at(Place),
         notice_people_at(Place),
@@ -325,6 +355,7 @@ instructions :-
         write('ekwipunek.               -- by sprawdzić swój ekwipunek.'), nl,
         write('obejrzyj(obiekt).        -- by obejrzeć przedmiot.'), nl,
         write('rozmawiaj(npc).          -- by porozmawiać z NPC.'), nl,
+        write('spytaj(npc, coś).          -- by spytać NPC o coś.'), nl,
         write('rozejrzyjSię.            -- by dowiedzieć się, gdzie jesteś.'), nl,
         nl.
 
