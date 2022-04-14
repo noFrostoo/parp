@@ -16,7 +16,10 @@ lokacja 1 - świętyDąb
 ===================*/
 i_am_at(świętyDąb).
 obejrzyjOK(świętyDąb) :- write("
-Gerwant z Riviery, szkoły nosacza, podróżuje już szlakiem wiele dni. Towarzyszy mu jedynie deszcz i jego wierny koń Knebel. Pewnego popołudnia dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
+Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni.
+Towarzyszy mu jedynie deszcz i jego wierny koń Piwonia. 
+Pewnego popołudnia dociera do Świętego Dębu. 
+Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
 
 
 Zabójca potworów może udać się na:
