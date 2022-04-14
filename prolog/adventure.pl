@@ -1,4 +1,4 @@
-/* <The name of this game>, by <your name goes here>. */
+/* Przygody Gerwanta z Riviery, by Drygaś Filip, Lew, Filip, Lipniacki Daniel. */
 :- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1, wEkwipunku/1, spytaj/2, obejrzyj/1, rozmawiaj/1.
 :- retractall(at(_, _)), retractall(i_am_at(_)), retractall(alive(_)), retractall(has(_)).
 :- discontiguous obejrzyj/1, obejrzyjOK/1, path/3, obejrzyjOK/1, be/2, rozmawiajOK/1, at/2, wEkwipunku/1, spytajOK/2.
