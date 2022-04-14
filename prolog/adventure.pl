@@ -17,6 +17,28 @@ lokacja 1 - świętyDąb
 i_am_at(świętyDąb).
 obejrzyjOK(świętyDąb) :- write("
 Gerwant z Riviery, szkoły nosacza, podróżuje już szlakiem wiele dni. Towarzyszy mu jedynie deszcz i jego wierny koń Knebel. Pewnego popołudnia dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
+/* Przygody Gerwanta z Riviery, by Drygaś Filip, Lew, Filip, Lipniacki Daniel. */
+:- dynamic i_am_at/1, at/2, holding/1, forbiddenMove/1, has/1, wEkwipunku/1, spytaj/2, obejrzyj/1, rozmawiaj/1.
+:- retractall(at(_, _)), retractall(i_am_at(_)), retractall(alive(_)), retractall(has(_)).
+:- discontiguous obejrzyj/1, obejrzyjOK/1, path/3, obejrzyjOK/1, be/2, rozmawiajOK/1, at/2, wEkwipunku/1, spytajOK/2.
+
+/*==========================================
+============================================
+
+                GAME WORLD
+
+============================================
+==========================================*/
+
+/*=================== 
+lokacja 1 - świętyDąb 
+===================*/
+i_am_at(świętyDąb).
+obejrzyjOK(świętyDąb) :- write("
+Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni.
+Towarzyszy mu jedynie deszcz i jego wierny koń Piwonia. 
+Pewnego popołudnia dociera do Świętego Dębu. 
+Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.
 
 
 Zabójca potworów może udać się na:
