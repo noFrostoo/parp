@@ -46,7 +46,7 @@ obejrzyjOK(wieśGrobla) :- write("
 Gerwant dociera do Wsi Grobla.
 
 Wiedźmak może udać się do:
-- dom Sołtysa
+- domSołtysa
 - karczma
 - południe"), nl.
 
