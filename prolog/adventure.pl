@@ -192,11 +192,6 @@ Wiedźmak może wrócić do:
 ============================================
 ==========================================*/
 
-
-/* debug */
-ścieżka(świętyDąb, drogaCzitera, pieczaraBestii).
-
-
 przygotujSięDoWalki :-
         jestem_w(pieczaraBestii),
         write("Do walki z jakim potworem musi się przygotować Gerwant z Riviery?"), nl,
