@@ -5,9 +5,10 @@
 import Control.Monad.State
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, fromJust)
 import Data.Set (Set)
 import qualified Data.Set as Set
+import System.IO
 
 -- game content
 
@@ -48,7 +49,7 @@ data Location = Location
 
 locations :: Map LocationName Location
 locations =
-  [ ("aaa", Location ["Wieśniak"] [("north", "bbb")])
+  [ ("Święty Dąb", Location ["Wieśniak"] [("north", "bbb")])
   ]
 
 itemPowers :: Map Item Double
@@ -66,7 +67,8 @@ data GameState = GameState
     hp :: Int,
     enemyHp :: Int,
     timeOfDay :: TimeOfDay,
-    dayTurnCounter :: Int
+    dayTurnCounter :: Int,
+    attackStrength :: Int
   }
 
 initialState :: GameState
@@ -79,7 +81,8 @@ initialState =
       hp = 100,
       enemyHp = 100,
       timeOfDay = Day,
-      dayTurnCounter = 0
+      dayTurnCounter = 0,
+      attackStrength = 10
     }
 
 -- game actions
@@ -87,6 +90,19 @@ initialState =
 describe :: String -> String
 describe "name" = "description"
 describe _ = "Nie ma takiego przedmiotu"
+
+talkPerson :: String -> String
+talkPerson "Wieśniak" = "elo"
+talkPerson _ = "Nie ma takiej osoby"
+
+
+askPersonText :: String -> String -> String
+askPersonText "Wieśniak" "Costam" = "elo elo"
+askPersonText person topic = "Nie możesz zapytać " ++ person ++ " o " ++ topic
+
+itemBoost :: String -> Int
+itemBoost _ = 0  
+
 
 go :: Monad m => LocationName -> Path -> StateT GameState m Bool
 go src path = do
@@ -110,7 +126,8 @@ pickUp item = do
       put $
         game
           { itemLocations = Map.insert (location game) (Set.delete item items) (itemLocations game),
-            inventory = Set.insert item (inventory game)
+            inventory = Set.insert item (inventory game),
+            attackStrength = attackStrength game + itemBoost item
           }
       return True
     else return False
@@ -124,25 +141,66 @@ dropItem item = do
       put $
         game
           { itemLocations = Map.insert (location game) (Set.insert item items) (itemLocations game),
-            inventory = Set.delete item (inventory game)
+            inventory = Set.delete item (inventory game),
+            attackStrength = attackStrength game - itemBoost item
           }
       return True
     else return False
 
 talkTo :: Monad m => Person -> StateT GameState m String
-talkTo person = undefined
+talkTo person = do 
+  game <- get
+  let cur_loc = fromJust (Map.lookup (location game) (locations))
+  let people_loc = people cur_loc
+  if person `elem` people_loc
+    then do
+      return (talkPerson person)
+    else return "Nie ma takiej osoby w tej lokacji"
 
 askPerson :: Monad m => Person -> String -> StateT GameState m String
-askPerson person topic = undefined
+askPerson person topic = do
+  game <- get
+  let cur_loc = fromJust (Map.lookup (location game) (locations))
+  let people_loc = people cur_loc
+  if person `elem` people_loc
+    then do
+      return (askPersonText person topic)
+    else return "Nie ma takiej osoby w tej lokacji"
 
 buyBeer :: Monad m => StateT GameState m Bool
-buyBeer = undefined
+buyBeer = do
+  game <- get
+  if "mieszek" `elem` inventory game
+    then do
+      let items = fromMaybe Set.empty (Map.lookup (location game) (itemLocations game))
+      put $
+        game
+          { inventory = Set.delete "mieszek" (inventory game),
+            hp = 100
+          }
+      return True
+    else return False
 
-prepareForFight :: Monad m => String -> StateT GameState m Bool
-prepareForFight = undefined
+boostAttack :: Monad m => Int -> StateT GameState m ()
+boostAttack boost = do
+  game <- get
+  put $
+    game
+      { attackStrength = (attackStrength game) + boost
+      }
 
-attack :: Monad m => Item -> StateT GameState m Int
-attack = undefined
+attack :: Monad m => StateT GameState m String
+attack = do 
+  game <- get
+  if location game == "Pieczara"
+    then do 
+      put $
+        game
+          { enemyHp = enemyHp game - attackStrength game,
+            hp = hp game - 15
+          }
+      return $ "Zataakowałęs za" ++ show (attackStrength game) ++ ". Twoje aktualne życie to" ++ show (hp game) ++ ".\nPrzeciwynik zatakował za" ++ show 15 ++ ". Jego zdrowie to " ++ show (enemyHp game)
+    else return "Nie ma potfora w tej lokacji"
 
 advanceDay :: Monad m => StateT GameState m TimeOfDay
 advanceDay = do
@@ -166,6 +224,7 @@ printInstructions = printLines instructionsText
 readCommand :: IO [String]
 readCommand = do
   putStr "> "
+  hFlush stdout
   fmap words getLine
 
 checkNumArgs :: (MonadTrans t) => Int -> [String] -> t IO () -> t IO ()
@@ -221,11 +280,26 @@ gameLoop = do
       desc <- lookAround
       lift $ putStrLn desc
       gameLoop
-    ("kup-piwo" : args) -> checkNumArgs 0 args do
+    ("kup" : "piwo" : args) -> checkNumArgs 0 args do
       success <- buyBeer
       if success
         then lift $ putStrLn "Gerwant pije piwo. Żywotność zostaje przywrócona."
         else lift $ putStrLn "Nie masz wystarczająco złota."
+    ("przygotuj" : "się" : "do" : "walki" : args) -> checkNumArgs 0 args do
+      game <- get 
+      if location game == "Pieczara" 
+        then do 
+          lift $ putStrLn "Do walki z jakim potworem musi się przygotować Gerwant z Riviery?"
+          monster <- lift readCommand
+          case monster of
+            ("Xxxx": args) -> checkNumArgs 0  args do 
+              lift $ putStrLn "Poprawna odpowiedz, ta walka bedzie łatwa"
+              boostAttack 5 -- boost for corrent anwser
+            _ -> do
+              lift $ putStrLn "Nie poprawna odpowiedz, twoja walka bedzie trudniesza"
+              boostAttack (-5)
+        else lift $ putStrLn "W tej lokacji nie ma walki"
+      gameLoop
     ("zakończ" : _) -> return ()
     _ -> do
       lift $ putStr "Nieznane polecenie. Wpisz 'polecenia' by wyświetlić listę."
