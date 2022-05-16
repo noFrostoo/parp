@@ -3,9 +3,10 @@
 {-# LANGUAGE OverloadedLists #-}
 
 import Control.Monad.State
+import Data.List (intercalate)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe, fromJust)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import System.IO
@@ -27,7 +28,8 @@ instructionsText =
     "obejrzyj <przedmiot>   -- by obejrzeć przedmiot.",
     "rozmawiaj <npc>        -- by porozmawiać z NPC.",
     "spytaj <npc> <coś>     -- by spytać NPC o coś.",
-    "rozejrzyj-się          -- by dowiedzieć się, gdzie jesteś.",
+    "rozejrzyj się          -- by dowiedzieć się, gdzie jesteś.",
+    "przygotuj się do walki -- by odgadnąć rodzaj potwora i zwiększyć swoje szanse na wygraną.",
     "zakończ                -- by zakończyć grę."
   ]
 
@@ -87,22 +89,23 @@ initialState =
 
 -- game actions
 
-describe :: String -> String
-describe "name" = "description"
-describe _ = "Nie ma takiego przedmiotu"
+describeItem :: Item -> String
+describeItem "name" = "description"
+describeItem _ = "Nie ma takiego przedmiotu."
 
-talkPerson :: String -> String
+describeLocation :: LocationName -> String
+describeLocation _ = "Nie ma takiego miejsca."
+
+talkPerson :: Person -> String
 talkPerson "Wieśniak" = "elo"
 talkPerson _ = "Nie ma takiej osoby"
 
-
-askPersonText :: String -> String -> String
+askPersonText :: Person -> String -> String
 askPersonText "Wieśniak" "Costam" = "elo elo"
-askPersonText person topic = "Nie możesz zapytać " ++ person ++ " o " ++ topic
+askPersonText person topic = "Nie możesz zapytać " ++ person ++ " o " ++ topic ++ "."
 
 itemBoost :: String -> Int
-itemBoost _ = 0  
-
+itemBoost _ = 0
 
 go :: Monad m => LocationName -> Path -> StateT GameState m Bool
 go src path = do
@@ -115,7 +118,17 @@ go src path = do
     Nothing -> return False
 
 lookAround :: Monad m => StateT GameState m String
-lookAround = undefined
+lookAround = do
+  game <- get
+  let peopleInLoc = people $ fromJust $ Map.lookup (location game) locations
+  let exitsInLoc = Map.keys $ exits $ fromJust $ Map.lookup (location game) locations
+  return $
+    describeLocation $
+      location game
+        ++ "\n\nZnajdują się tu następujące osoby:"
+        ++ intercalate "\n" (map ("  - " ++) peopleInLoc)
+        ++ "\n\nGerwant może stąd pójść w następujących kierunkach:"
+        ++ intercalate "\n" (map ("  - " ++) exitsInLoc)
 
 pickUp :: Monad m => Item -> StateT GameState m Bool
 pickUp item = do
@@ -148,24 +161,24 @@ dropItem item = do
     else return False
 
 talkTo :: Monad m => Person -> StateT GameState m String
-talkTo person = do 
+talkTo person = do
   game <- get
-  let cur_loc = fromJust (Map.lookup (location game) (locations))
+  let cur_loc = fromJust (Map.lookup (location game) locations)
   let people_loc = people cur_loc
   if person `elem` people_loc
     then do
       return (talkPerson person)
-    else return "Nie ma takiej osoby w tej lokacji"
+    else return "Nie ma takiej osoby w tym miejscu."
 
 askPerson :: Monad m => Person -> String -> StateT GameState m String
 askPerson person topic = do
   game <- get
-  let cur_loc = fromJust (Map.lookup (location game) (locations))
+  let cur_loc = fromJust (Map.lookup (location game) locations)
   let people_loc = people cur_loc
   if person `elem` people_loc
     then do
       return (askPersonText person topic)
-    else return "Nie ma takiej osoby w tej lokacji"
+    else return "Nie ma takiej osoby w tym miejscu."
 
 buyBeer :: Monad m => StateT GameState m Bool
 buyBeer = do
@@ -184,23 +197,40 @@ buyBeer = do
 boostAttack :: Monad m => Int -> StateT GameState m ()
 boostAttack boost = do
   game <- get
-  put $
-    game
-      { attackStrength = (attackStrength game) + boost
-      }
+  put $ game {attackStrength = attackStrength game + boost}
 
 attack :: Monad m => StateT GameState m String
-attack = do 
+attack = do
   game <- get
   if location game == "Pieczara"
-    then do 
-      put $
-        game
-          { enemyHp = enemyHp game - attackStrength game,
-            hp = hp game - 15
-          }
-      return $ "Zataakowałęs za" ++ show (attackStrength game) ++ ". Twoje aktualne życie to" ++ show (hp game) ++ ".\nPrzeciwynik zatakował za" ++ show 15 ++ ". Jego zdrowie to " ++ show (enemyHp game)
-    else return "Nie ma potfora w tej lokacji"
+    then if enemyHp game > 0
+      then do
+        let gerwantAttack = max (enemyHp game) (attackStrength game)
+        let enemyAttack = max (hp game) 15
+        let gerwantHpAfter = hp game - enemyAttack
+        let enemyHpAfter = enemyHp game - gerwantAttack
+        put $
+          game
+            { enemyHp = enemyHpAfter,
+              hp = gerwantHpAfter
+            }
+        when (gerwantHpAfter <= 0) (put initialState)
+        return $ "Gerwant atakuje za " ++ show gerwantAttack ++ " pkt.\n"
+          ++ if enemyHpAfter <= 0
+            then "Potwór pada martwy od ciosu."
+            else "Przeciwnik atakuje za "
+              ++ show enemyAttack
+              ++ " pkt.\n"
+              ++ if gerwantHpAfter <= 0
+                then "Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.\nGra zaczyna się od początku."
+                else "Zdrowie Gerwanta wynosi "
+                ++ show gerwantHpAfter
+                ++ ".\n"
+                ++ "Zdrowie potwora wynosi "
+                ++ show enemyHpAfter
+                ++ "."
+      else return "Potwór jest już martwy."
+    else return "To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje."
 
 advanceDay :: Monad m => StateT GameState m TimeOfDay
 advanceDay = do
@@ -227,7 +257,7 @@ readCommand = do
   hFlush stdout
   fmap words getLine
 
-checkNumArgs :: (MonadTrans t) => Int -> [String] -> t IO () -> t IO ()
+checkNumArgs :: MonadTrans t => Int -> [String] -> t IO () -> t IO ()
 checkNumArgs num args expr =
   if length args == num
     then expr
@@ -263,10 +293,10 @@ gameLoop = do
       gameLoop
     ("ekwipunek" : args) -> checkNumArgs 0 args do
       game <- get
-      lift $ putStrLn $ unlines $ map describe (Set.toList $ inventory game)
+      lift $ putStrLn $ unlines $ map describeItem (Set.toList $ inventory game)
       gameLoop
     ("obejrzyj" : args) -> checkNumArgs 1 args do
-      lift $ putStrLn $ describe $ head args
+      lift $ putStrLn $ describeItem $ head args
       gameLoop
     ("rozmawiaj" : args) -> checkNumArgs 1 args do
       answer <- talkTo $ head args
@@ -286,26 +316,31 @@ gameLoop = do
         then lift $ putStrLn "Gerwant pije piwo. Żywotność zostaje przywrócona."
         else lift $ putStrLn "Nie masz wystarczająco złota."
     ("przygotuj" : "się" : "do" : "walki" : args) -> checkNumArgs 0 args do
-      game <- get 
-      if location game == "Pieczara" 
-        then do 
+      game <- get
+      if location game == "Pieczara"
+        then do
           lift $ putStrLn "Do walki z jakim potworem musi się przygotować Gerwant z Riviery?"
           monster <- lift readCommand
           case monster of
-            ("Xxxx": args) -> checkNumArgs 0  args do 
-              lift $ putStrLn "Poprawna odpowiedz, ta walka bedzie łatwa"
-              boostAttack 5 -- boost for corrent anwser
+            ["xxxxx"] -> do
+              lift $ putStrLn "Poprawna odpowiedź. Gerwant warzy odpowiednie eliksiry, które poprawią jego zdolności bojowe"
+              boostAttack 5 -- boost for correct anwser
             _ -> do
-              lift $ putStrLn "Nie poprawna odpowiedz, twoja walka bedzie trudniesza"
+              lift $ putStrLn "Niepoprawna odpowiedź. Gerwant warzy złe eliksiry, które mu nie pomogą, a będzie musiał zmagać się z efektami ubocznymi."
               boostAttack (-5)
-        else lift $ putStrLn "W tej lokacji nie ma walki"
+        else lift $ putStrLn "To miejsce jest spokojne. Po co Gerwant miałby przygotowywać się do walki?"
       gameLoop
     ("zakończ" : _) -> return ()
     _ -> do
       lift $ putStr "Nieznane polecenie. Wpisz 'polecenia' by wyświetlić listę."
       gameLoop
 
+initGame :: StateT GameState IO ()
+initGame = do
+  lookAround
+  gameLoop
+
 main = do
   printIntroduction
   printInstructions
-  execStateT gameLoop initialState
+  execStateT initGame initialState
