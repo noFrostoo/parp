@@ -51,12 +51,14 @@ data Location = Location
 
 locations :: Map LocationName Location
 locations =
-  [ ("Święty Dąb", Location ["Wieśniak"] [("north", "bbb")])
-  ]
-
-itemPowers :: Map Item Double
-itemPowers =
-  [ ("Gnomski Gwyhyr", 2)
+  [ ("ŚwiętyDąb", Location ["Wieśniak"] [("północ", "WieśGrobla")]),
+    ("WieśGrobla", Location [] [("Karczma", "Karczma"), ("DomSołtysa", "DomSołtysa"), ("południe", "ŚwiętyDąb")]),
+    ("DomSołtysa", Location ["Sołtys"] [("wyjdź", "WieśGrobla")]),
+    ("Karczma", Location ["Drwale", "Karczmarz"] [("wyjdź", "WieśGrobla")]),
+    ("PolanaKołoChatyDrwali", Location [] [("zachód", "ŚwiętyDąb"), ("chata", "ChataDrwali"), ("Puszcza", "Puszcza")]),
+    ("ChataDrwali", Location [] [("wyjdź", "PolanaKołoChatyDrwali")]),
+    ("Puszcza", Location [] [("polana", "PolanaKołoChatyDrwali"), ("pieczara", "Pieczara")]),
+    ("Pieczara", Location [] [("wyjdź", "Puszcza")])
   ]
 
 -- game state
@@ -76,9 +78,11 @@ data GameState = GameState
 initialState :: GameState
 initialState =
   GameState
-    { location = "Święty Dąb",
+    { location = "ŚwiętyDąb",
       inventory = Set.empty,
-      itemLocations = Map.empty,
+      itemLocations = [
+        ("", [])
+      ],
       facts = Set.empty,
       hp = 100,
       enemyHp = 100,
@@ -90,22 +94,64 @@ initialState =
 -- game actions
 
 describeItem :: Item -> String
-describeItem "name" = "description"
+describeItem "Totem" = "Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie."
+describeItem "Ciało" = "Analiza Wiedźmina: Rany od szponów i kłów."
+
+describeItem "Studnia" = " Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni."
+describeItem "GnomskiGwyhyr" = "Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy."
+describeItem "Tablica Ogłoszeń" = "Nie ma takiego przedmiotu."
+
+describeItem "CidaryjskaPrzeszywanica" = "Przeszywanica popularna pośród piechurów w Cidaris"
+describeItem "Trup" = "Analiza Gerwanta z Riviery: \"Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki\""
+
+describeItem "Topór" = "Analiza Gerwanta z Riviery: \"W rysach topora zastała się zaschnięta krew zwierzęcia\""
+describeItem "Czaszka" = "Gerwanta z Riviery: \"Ta czaszka należy do młodego niedźwiedzia\""
+describeItem "Mieszek" = "Mieszek pełen złota. W środku znajduje się 10 monet. Wystarczy na piwo."
+
+describeItem "Statua" = " Analiza Gerwanta z Riviery: \"Medalion Drży. To magiczny totem. Podobny totem widziałem pod Świętym dębem\". Wiedźmin postanawia przeczytać bestiariusz. W wiedźmińskim almanachu Gerwant znajduje informację, że magiczne totemy to znak rozpoznawczny terytorium potwora zwanego jako *Leszy*."
 describeItem _ = "Nie ma takiego przedmiotu."
 
-describeLocation :: LocationName -> String
+describeLocation :: String -> String
+describeLocation "ŚwiętyDąb" = "Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni.\
+\Towarzyszy mu jedynie deszcz i jego wierny koń Piwonia.\
+\Pewnego popołudnia dociera do Świętego Dębu.\
+\Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią."
+describeLocation "WieśGrobla" = "Gerwant dociera do Wsi Grobla."
+describeLocation "DomSołtysa" = "Zabójca potworów wchodzi do domu sołtysa"
+describeLocation "Karczma" = "Gerwant wchodzi do Karczmy"
+describeLocation "PolanaKołoChatyDrwali" = "Zabójca potworów znajduje się na polanie wokoło Chaty Drwali."
+describeLocation "ChataDrwali" = "Łowca potworów wchodzi do Chaty Drwali"
+describeLocation "Puszcza" = "Mistrz Gerwant wkracza w samo serce puszczy."
+describeLocation "Karczma" = "Gerwant z Riviery wchodzi do pieczary. \
+\Gerwant wnioskuje, że natrafił na leże potwora. \
+\Monstrum nie ma w jaskini, więc może na niego zaczekać (komenda przygotujSięDoWalki). \
+\Aczkolwiek zanim wiedźmin zdecyduje się na spotkanie oko w oko z bestia \
+\powinien się porządnie przygotować, a zatem musi wywnioskować z jakim potworem ma do czynienia."
+
 describeLocation _ = "Nie ma takiego miejsca."
 
 talkPerson :: Person -> String
-talkPerson "Wieśniak" = "elo"
+talkPerson "Wieśniak" = "Wieśniak jest sparaliżowany strachem i majaczy"
+
+talkPerson "Drwale" = "Dobre jest tutaj piwo!"
+talkPerson "Karczmarz" = "Pordóżniku, zapraszam na piwo!"
+
+talkPerson "Sołtys" = "Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*."
+
 talkPerson _ = "Nie ma takiej osoby"
 
 askPersonText :: Person -> String -> String
-askPersonText "Wieśniak" "Costam" = "elo elo"
+askPersonText "Drwale" "atak" = "Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu"
 askPersonText person topic = "Nie możesz zapytać " ++ person ++ " o " ++ topic ++ "."
 
 itemBoost :: String -> Int
+itemBoost "GnomskiGwyhyr" = 110
+itemBoost "CidaryjskaPrzeszywanica" = 50
+itemBoost "Topór" = 50
 itemBoost _ = 0
+
+-- Game information
+
 
 go :: Monad m => LocationName -> Path -> StateT GameState m Bool
 go src path = do
@@ -122,10 +168,12 @@ lookAround = do
   game <- get
   let peopleInLoc = people $ fromJust $ Map.lookup (location game) locations
   let exitsInLoc = Map.keys $ exits $ fromJust $ Map.lookup (location game) locations
+  let itemsInLoc = 
   return $
-    describeLocation $
-      location game
+    describeLocation (location game)
         ++ "\n\nZnajdują się tu następujące osoby:"
+        ++ intercalate "\n" (map ("  - " ++) peopleInLoc)
+        ++ "\n\nZnajdują się tu następujące przedmioty:"
         ++ intercalate "\n" (map ("  - " ++) peopleInLoc)
         ++ "\n\nGerwant może stąd pójść w następujących kierunkach:"
         ++ intercalate "\n" (map ("  - " ++) exitsInLoc)
@@ -306,7 +354,7 @@ gameLoop = do
       answer <- askPerson (head args) (args !! 1)
       lift $ putStrLn answer
       gameLoop
-    ("rozejrzyj-się" : args) -> checkNumArgs 0 args do
+    ("rozejrzyj" : "się" : args) -> checkNumArgs 0 args do
       desc <- lookAround
       lift $ putStrLn desc
       gameLoop
@@ -322,7 +370,7 @@ gameLoop = do
           lift $ putStrLn "Do walki z jakim potworem musi się przygotować Gerwant z Riviery?"
           monster <- lift readCommand
           case monster of
-            ["xxxxx"] -> do
+            ["leszy"] -> do
               lift $ putStrLn "Poprawna odpowiedź. Gerwant warzy odpowiednie eliksiry, które poprawią jego zdolności bojowe"
               boostAttack 5 -- boost for correct anwser
             _ -> do
