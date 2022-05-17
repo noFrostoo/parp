@@ -10,6 +10,7 @@ import Data.Maybe (fromJust, fromMaybe)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import System.IO
+import Data.Set (toList)
 
 -- game content
 
@@ -81,7 +82,13 @@ initialState =
     { location = "ŚwiętyDąb",
       inventory = Set.empty,
       itemLocations = [
-        ("", [])
+        ("ŚwiętyDąb", ["Ciało", "Totem"]),
+        ("WieśGrobla", ["Studnia"]),
+        ("DomSołtysa", []),
+        ("Karczma", []),
+        ("PolanaKołoChatyDrwali", ["CidaryjskaPrzeszywanica", "Trup"]),
+        ("ChataDrwali", ["Topór", "Czaszka", "Mieszek"]),
+        ("Puszcza", ["Statua"])
       ],
       facts = Set.empty,
       hp = 100,
@@ -161,22 +168,31 @@ go src path = do
       put $ game {location = loc}
       advanceDay
       return True
-    Nothing -> return False
+    Nothing -> do
+      game <- get 
+      if "ŚwiętyDąb" == src && path == "PolanaKołoChatyDrwali" && "OdkrytePolana" `elem` (facts game)
+        then do
+          put $ game {location = "PolanaKołoChatyDrwali"}
+          advanceDay
+          return True
+      else return False
+
 
 lookAround :: Monad m => StateT GameState m String
 lookAround = do
   game <- get
   let peopleInLoc = people $ fromJust $ Map.lookup (location game) locations
   let exitsInLoc = Map.keys $ exits $ fromJust $ Map.lookup (location game) locations
-  let itemsInLoc = 
+  let itemsInLoc = toList $ fromJust $ Map.lookup (location game) (itemLocations game) 
   return $
     describeLocation (location game)
-        ++ "\n\nZnajdują się tu następujące osoby:"
+        ++ "\n\nZnajdują się tu następujące osoby:\n"
         ++ intercalate "\n" (map ("  - " ++) peopleInLoc)
-        ++ "\n\nZnajdują się tu następujące przedmioty:"
-        ++ intercalate "\n" (map ("  - " ++) peopleInLoc)
-        ++ "\n\nGerwant może stąd pójść w następujących kierunkach:"
+        ++ "\n\nZnajdują się tu następujące przedmioty:\n"
+        ++ intercalate "\n" (map ("  - " ++) itemsInLoc)
+        ++ "\n\nGerwant może stąd pójść w następujących kierunkach:\n"
         ++ intercalate "\n" (map ("  - " ++) exitsInLoc)
+        ++ if "ŚwiętyDąb" == (location game)  && "OdkrytePolana" `elem` (facts game) then "\n   - PolanaKołoChatyDrwali" else ""
 
 pickUp :: Monad m => Item -> StateT GameState m Bool
 pickUp item = do
@@ -225,6 +241,11 @@ askPerson person topic = do
   let people_loc = people cur_loc
   if person `elem` people_loc
     then do
+      when (person == "Drwale" && topic == "atak") do
+        put $
+          game
+            { facts = Set.insert "OdkrytePolana" (facts game)
+            }
       return (askPersonText person topic)
     else return "Nie ma takiej osoby w tym miejscu."
 
@@ -279,6 +300,15 @@ attack = do
                 ++ "."
       else return "Potwór jest już martwy."
     else return "To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje."
+
+
+checkIfAddGnomskiGwyhyr :: Monad m => String -> StateT GameState m ()
+checkIfAddGnomskiGwyhyr itemSrc  = do
+    game <- get
+    when (itemSrc == "Studnia") do
+      let items = fromMaybe Set.empty (Map.lookup "WieśGrobla" (itemLocations game))
+      put $ 
+        game { itemLocations = Map.insert "WieśGrobla"  ( Set.insert "GnomskiGwyhyr" items) (itemLocations game) }
 
 advanceDay :: Monad m => StateT GameState m TimeOfDay
 advanceDay = do
@@ -344,6 +374,7 @@ gameLoop = do
       lift $ putStrLn $ unlines $ map describeItem (Set.toList $ inventory game)
       gameLoop
     ("obejrzyj" : args) -> checkNumArgs 1 args do
+      checkIfAddGnomskiGwyhyr $ head args
       lift $ putStrLn $ describeItem $ head args
       gameLoop
     ("rozmawiaj" : args) -> checkNumArgs 1 args do
