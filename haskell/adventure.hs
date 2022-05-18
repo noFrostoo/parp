@@ -84,7 +84,7 @@ initialState =
       inventory = Set.empty,
       itemLocations = [
         ("ŚwiętyDąb", ["Ciało", "Totem"]),
-        ("WieśGrobla", ["Studnia"]),
+        ("WieśGrobla", ["Studnia", "TablicaOgłoszeń"]),
         ("DomSołtysa", []),
         ("Karczma", []),
         ("PolanaKołoChatyDrwali", ["CidaryjskaPrzeszywanica", "Trup"]),
@@ -107,7 +107,7 @@ describeItem "Ciało" = "Analiza Wiedźmina: Rany od szponów i kłów."
 
 describeItem "Studnia" = " Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni."
 describeItem "GnomskiGwyhyr" = "Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy."
-describeItem "Tablica Ogłoszeń" = "Nie ma takiego przedmiotu."
+describeItem "TablicaOgłoszeń" = "Nie ma takiego przedmiotu."
 
 describeItem "CidaryjskaPrzeszywanica" = "Przeszywanica popularna pośród piechurów w Cidaris"
 describeItem "Trup" = "Analiza Gerwanta z Riviery: \"Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki\""
