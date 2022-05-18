@@ -21,7 +21,7 @@ Object subclass: Game [
         enemyHp 
         timeOfDay 
         dayTurnCounter 
-        attacksStrength
+        attackStrength
         itemDescription
         locationDescription
         npcDialog 
@@ -69,7 +69,7 @@ Object subclass: Game [
         enemyHp := 100.
         dayTurnCounter := 0.
         timeOfDay := 'Day'.
-        attacksStrength := 10.
+        attackStrength := 10.
         facts := Set new.
         location := 'ŚwiętyDąb'.
         inventory := Set new.
@@ -122,12 +122,12 @@ Object subclass: Game [
         npcDialog at: 'Sołtys' put: 'Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*.'.
 
         npcAskAbout := Dictionary new.
-        npcAskAbout at: #('Drwale' 'atak') put: 'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
+        npcAskAbout at: #('Drwale' 'atak') put: 'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'.
 
         itemStrengthBoost := Dictionary new.
-        itemStrengthBoost at: 'GnomskiGwyhyr' put: 110
-        itemStrengthBoost at: 'CidaryjskaPrzeszywanica' put: 51
-        itemStrengthBoost at: 'Topór' put: 50
+        itemStrengthBoost at: 'GnomskiGwyhyr' put: 110.
+        itemStrengthBoost at: 'CidaryjskaPrzeszywanica' put: 51.
+        itemStrengthBoost at: 'Topór' put: 50.
 
         npcLocations := Dictionary new .
         npcLocations at: 'ŚwiętyDąb' put: #('Wieśniak').
@@ -136,7 +136,7 @@ Object subclass: Game [
         npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
         npcLocations at: 'PolanaKołoChatyDrwali' put: #().
         npcLocations at: 'ChataDrwali' put: #().
-        npcLocations at: 'Puszcza' put: #().
+        npcLocations at: 'Puszcza' put: #()
     ]
 
     "Print strings from array in separate lines."
@@ -158,66 +158,147 @@ Object subclass: Game [
     ]
 
     go: path [
-        | exits, newLoc |
+        | exits newLoc |
         exits := paths at: location
-        exits do: [ :exit
-            exit at: 1 = path
-                ifTrue: [
-                    location := exit at: 2
-                    ^true
-                ]
-        ]
+        exits do: [ 
+            :exit |
+            (exit at: 1) = path ifTrue: [
+                location := exit at: 2.
+                ^true
+            ].
+        ].
         ^false
     ]
 
     lookAround [
         (locationDescription at: location) printNl.
         'Znajdują się tu następujące osoby:' printNl.
-        npcLocations at: location do: [ :npc
+        npcLocations at: location do: [ :npc |
             '  - ' print.
             npc printNl.
-        ]
+        ].
         '' printNl.
         'Znajdują się tu następujące przedmioty:' printNl.
-        itemLocations at: location do: [ :item
+        itemLocations at: location do: [ :item |
             '  - ' print.
             item printNl.
-        ]
+        ].
         '' printNl.
         'Gerwant może stąd pójść w następujących kierunkach:' printNl.
-        paths at: location do: [ :path
+        paths at: location do: [ :path |
             '  - ' print.
             (path at: 1) printNl.
         ]
     ]
 
     pickUp: item [
-        
+        itemLocations at: location includes: item
+            ifTrue: [
+                itemLocations at: location remove: item.
+                inventory add: item.
+                itemStrengthBoost includes: item ifTrue: [attackStrength := attackStrength + (itemStrengthBoost at: item)].
+                ^true
+            ].
+        ^false
     ]
 
     dropItem: item [
-
+        inventory includes: item
+            ifTrue: [
+                inventory remove: item.
+                itemLocations at: location add: item.
+                itemStrengthBoost includes: item ifTrue: [attackStrength := attackStrength - (itemStrengthBoost at: item)].
+                ^true
+            ].
+        ^false
     ]
 
     talkTo: person [
-
+        | people |
+        people := npcLocations at: location.
+        people do: [
+            :p |
+            p == person
+                ifTrue: [
+                    ^npcDialog at: person
+                ]
+        ].
+        ^'Nie ma tu takiej osoby' 
     ]
 
-    askPerson: person topic [
-
+    askPerson: person about:topic [
+        person == 'Drwale' and topic == 'atak'
+            ifTrue: [
+                paths at: 'ŚwiętyDąb' add: #('wschód' 'PolanaKołoChatyDrwali').
+                ^'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu'
+            ].
+        ^'Nie możesz zapytać tej osoby o ten temat'
     ]
 
     buyBeer [
-
+        inventory includes: 'Mieszek' and location = 'Karczma'
+            ifTrue: [
+                inventory remove: 'Mieszek'.
+                hp = 100.
+                ^true
+            ].
+        ^false
     ]
 
     attack [
+        | gerwantAttack enemyAttack gerwantHpAfter enemyHpAfter |
+        location = 'Pieczara'
+            ifFalse: [^'To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje.'].
+        enemyHp <= 0
+            ifFalse: [^'Potwór jest już martwy'].
+        
+        gerwantAttack := enemyHp max: attackStrength.
+        enemyAttack := hp max: 15.
+        hp := hp - enemyAttack.
+        enemyHp := enemyHp - gerwantAttack.
 
+        'Gerwant atakuje za ' print.
+        gerwantAttack printLn.
+        enemyHp = 0 ifTrue: [
+            'Potwór pada martwy od ciosu.' printLn.
+            ^nil
+        ].
+
+        'Potwór atakuje za ' print.
+        enemyAttack printLn.
+        hp = 0 ifTrue: [
+            'Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.' printLn.
+            'Gra zaczyna się od początku.' printLn.
+            self init.
+            ^nil
+        ].
+
+        'Zdrowie Gerwanta wynosi ' print.
+        hp printLn.
+        'Zdrowie potwora wynosi ' print.
+        enemyHp printLn.
+    ]
+
+    interact: item [
+        | items |
+        item == 'Studnia' and location == 'WieśGrobla'
+            ifTrue: [
+                (itemLocations at: 'WieśGrobla') add: 'GnomskiGwyhyr'
+            ].
+        items := itemLocations at: location.
+        items do: [
+            :i |
+            i == item
+                ifTrue: [
+                    ^itemDescription at: item.
+                ]
+        ].
+        ^'Nie ma tu takiego przedmiotu' 
     ]
 
     "Run the game."
     run [
-        | args isUnknown firstCmd |
+        | cmd isUnknown |
 
         self printIntroduction.
         self printInstructions.
@@ -226,72 +307,68 @@ Object subclass: Game [
         [isGameOver] whileFalse: [
 
             isUnknown := true.
-            args := self readCommand substrings: ' '.
-            firstCmd := args at: 1.
-            args removeFirst.
+            cmd := self readCommand substrings: ' '.
 
-
-            firstCmd = 'polecenia' ifTrue: [
+            cmd.
+            (cmd at: 1) = 'polecenia' & isUnknown  ifTrue: [
                 self printInstructions.
                 isUnknown := false
             ].
 
-            firstCmd = 'rozmawiaj' ifTrue: [
-
-
+            (cmd at: 1) = 'rozmawiaj' & isUnknown  ifTrue: [
+                self talkTo: (cmd at: 2).
                 isUnknown := false
             ].
 
-            firstCmd = 'spytaj' ifTrue: [
+            (cmd at: 1) = 'spytaj' & isUnknown ifTrue: [
+                self askPerson: (cmd at: 2) about: (cmd at: 3).
+                isUnknown := false
+            ].
+
+            (cmd at: 1) = 'obejrzyj' & isUnknown  ifTrue: [
 
                 
                 isUnknown := false
             ].
 
-            firstCmd = 'obejrzyj' ifTrue: [
+            (cmd at: 1) = 'idź' & isUnknown  ifTrue: [
 
-                
+                (cmd at: 1) printNl.
                 isUnknown := false
             ].
 
-            firstCmd = 'idź' ifTrue: [
-
-                (args at: 1) printNl.
-                isUnknown := false
-            ].
-
-            firstCmd = 'podnieś' ifTrue: [
+            (cmd at: 1) = 'podnieś' & isUnknown  ifTrue: [
 
                 isUnknown := false
             ].
 
-            firstCmd = 'ewkipunek' ifTrue: [
+            (cmd at: 1) = 'ewkipunek' & isUnknown  ifTrue: [
 
                 isUnknown := false
             ].
 
-            firstCmd = 'utrać' ifTrue: [
+            (cmd at: 1) = 'utrać' & isUnknown  ifTrue: [
 
                 isUnknown := false
             ].
 
-            firstCmd = 'kupPiwo' ifTrue: [
+            (cmd at: 1) = 'przygotujSięDoWalki' & isUnknown  ifTrue: [
 
                 isUnknown := false
             ].
 
-            firstCmd = 'przygotujSięDoWalki' ifTrue: [
+            (cmd at: 1) = 'rozejrzyjSię' & isUnknown ifTrue: [
 
                 isUnknown := false
             ].
 
-            firstCmd = 'rozejrzyjSię' ifTrue: [
-
-                isUnknown := false
-            ].
-
-            firstCmd = 'zakończ' ifTrue: [
+            (cmd at: 1) = 'zakończ' & isUnknown  ifTrue: [
                 isGameOver := true.
+                isUnknown := false
+            ].
+
+            (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' & isUnknown ifTrue: [
+                (cmd) printNl.
                 isUnknown := false
             ].
 
