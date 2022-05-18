@@ -26,7 +26,9 @@ Object subclass: Game [
         locationDescription
         npcDialog 
         paths 
-        npcAskAbout|
+        npcAskAbout
+        itemStrengthBoost
+        npcLocations|
 
     introductionText := #(
         'Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni.'
@@ -122,6 +124,19 @@ Object subclass: Game [
         npcAskAbout := Dictionary new.
         npcAskAbout at: #('Drwale' 'atak') put: 'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
 
+        itemStrengthBoost := Dictionary new.
+        itemStrengthBoost at: 'GnomskiGwyhyr' put: 110
+        itemStrengthBoost at: 'CidaryjskaPrzeszywanica' put: 51
+        itemStrengthBoost at: 'Topór' put: 50
+
+        npcLocations := Dictionary new .
+        npcLocations at: 'ŚwiętyDąb' put: #('Wieśniak').
+        npcLocations at: 'WieśGrobla' put: #().
+        npcLocations at: 'DomSołtysa' put: #('Sołtys').
+        npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
+        npcLocations at: 'PolanaKołoChatyDrwali' put: #().
+        npcLocations at: 'ChataDrwali' put: #().
+        npcLocations at: 'Puszcza' put: #().
     ]
 
     "Print strings from array in separate lines."
@@ -142,14 +157,62 @@ Object subclass: Game [
         ^ FileStream stdin nextLine
     ]
 
-    go :path [
+    go: path [
         | exits, newLoc |
         exits := paths at: location
         exits do: [ :exit
             exit at: 1 = path
-                ifTrue: [^ exit at: 2]
+                ifTrue: [
+                    location := exit at: 2
+                    ^true
+                ]
         ]
-        ^nil
+        ^false
+    ]
+
+    lookAround [
+        (locationDescription at: location) printNl.
+        'Znajdują się tu następujące osoby:' printNl.
+        npcLocations at: location do: [ :npc
+            '  - ' print.
+            npc printNl.
+        ]
+        '' printNl.
+        'Znajdują się tu następujące przedmioty:' printNl.
+        itemLocations at: location do: [ :item
+            '  - ' print.
+            item printNl.
+        ]
+        '' printNl.
+        'Gerwant może stąd pójść w następujących kierunkach:' printNl.
+        paths at: location do: [ :path
+            '  - ' print.
+            (path at: 1) printNl.
+        ]
+    ]
+
+    pickUp: item [
+        
+    ]
+
+    dropItem: item [
+
+    ]
+
+    talkTo: person [
+
+    ]
+
+    askPerson: person topic [
+
+    ]
+
+    buyBeer [
+
+    ]
+
+    attack [
+
     ]
 
     "Run the game."
