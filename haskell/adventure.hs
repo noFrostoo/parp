@@ -31,7 +31,8 @@ instructionsText =
     "spytaj <npc> <coś>     -- by spytać NPC o coś.",
     "rozejrzyj się          -- by dowiedzieć się, gdzie jesteś.",
     "przygotuj się do walki -- by odgadnąć rodzaj potwora i zwiększyć swoje szanse na wygraną.",
-    "zakończ                -- by zakończyć grę."
+    "zakończ                -- by zakończyć grę.",
+    "Żadne zwierze nie ucierpiało podczas tworzenia tej gry"
   ]
 
 type Item = String
