@@ -51,7 +51,6 @@ Object subclass: Game [
         'rozmawiaj <npc>        -- by porozmawiać z NPC.'
         'spytaj <npc> <coś>     -- by spytać NPC o coś.'
         'rozejrzyj się          -- by dowiedzieć się, gdzie jesteś.'
-        'przygotuj się do walki -- by odgadnąć rodzaj potwora i zwiększyć swoje szanse na wygraną.'
         'zakończ                -- by zakończyć grę.'
         ''
     ).
@@ -298,7 +297,7 @@ Object subclass: Game [
 
     "Run the game."
     run [
-        | cmd isUnknown |
+        | cmd isUnknown cmdWordsNumber|
 
         self printIntroduction.
         self printInstructions.
@@ -308,72 +307,87 @@ Object subclass: Game [
 
             isUnknown := true.
             cmd := self readCommand substrings: ' '.
+            cmdWordsNumber := cmd size.
 
             cmd.
-            (cmd at: 1) = 'polecenia' & isUnknown  ifTrue: [
-                self printInstructions.
-                isUnknown := false
+            (cmdWordsNumber = 1) ifTrue: [
+                (cmd at: 1) = 'polecenia' & isUnknown  ifTrue: [
+                    self printInstructions.
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'ewkipunek' & isUnknown  ifTrue: [
+
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'zakończ' & isUnknown  ifTrue: [
+                    isGameOver := true.
+                    isUnknown := false
+                ]
             ].
 
-            (cmd at: 1) = 'rozmawiaj' & isUnknown  ifTrue: [
-                self talkTo: (cmd at: 2).
-                isUnknown := false
+
+
+            (cmdWordsNumber = 2) ifTrue: [
+                (cmd at: 1) = 'rozmawiaj' & isUnknown  ifTrue: [
+                    self talkTo: (cmd at: 2).
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' & isUnknown ifTrue: [
+                    (cmd) printNl.
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'obejrzyj' & isUnknown  ifTrue: [
+                    (cmd) printNl.
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'idź' & isUnknown  ifTrue: [
+                    (cmd) printNl.
+                    (cmd at: 1) printNl.
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'podnieś' & isUnknown  ifTrue: [
+
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'utrać' & isUnknown  ifTrue: [
+
+                    isUnknown := false
+                ].
+
+                (cmd at: 1) = 'rozejrzyj' & (cmd at: 2) = 'się' & isUnknown ifTrue: [
+                    (cmd) printNl.
+                    isUnknown := false
+                ]
             ].
 
-            (cmd at: 1) = 'spytaj' & isUnknown ifTrue: [
-                self askPerson: (cmd at: 2) about: (cmd at: 3).
-                isUnknown := false
+
+
+            (cmdWordsNumber = 3) ifTrue: [
+                (cmd at: 1) = 'spytaj' & isUnknown ifTrue: [
+                    self askPerson: (cmd at: 2) about: (cmd at: 3).
+                    isUnknown := false
+                ]
             ].
 
-            (cmd at: 1) = 'obejrzyj' & isUnknown  ifTrue: [
 
-                
-                isUnknown := false
+
+            (cmdWordsNumber = 4) ifTrue: [
+                (cmd at: 1) = 'przygotuj' & (cmd at: 2) = 'się' & (cmd at: 3) = 'do' & (cmd at: 4) = 'walki' & isUnknown  ifTrue: [
+                    isUnknown := false
+                ].
             ].
 
-            (cmd at: 1) = 'idź' & isUnknown  ifTrue: [
-
-                (cmd at: 1) printNl.
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'podnieś' & isUnknown  ifTrue: [
-
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'ewkipunek' & isUnknown  ifTrue: [
-
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'utrać' & isUnknown  ifTrue: [
-
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'przygotujSięDoWalki' & isUnknown  ifTrue: [
-
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'rozejrzyjSię' & isUnknown ifTrue: [
-
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'zakończ' & isUnknown  ifTrue: [
-                isGameOver := true.
-                isUnknown := false
-            ].
-
-            (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' & isUnknown ifTrue: [
-                (cmd) printNl.
-                isUnknown := false
-            ].
+            
 
             isUnknown ifTrue: [
-                self printLines: #('Unknown command.' '')
+                self printLines: #('Nieznana lub niepełna komenda. Być może brakuje argumentów.' '')
             ]
         ]
     ]
