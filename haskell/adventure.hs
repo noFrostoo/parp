@@ -30,7 +30,6 @@ instructionsText =
     "rozmawiaj <npc>        -- by porozmawiać z NPC.",
     "spytaj <npc> <coś>     -- by spytać NPC o coś.",
     "rozejrzyj się          -- by dowiedzieć się, gdzie jesteś.",
-    "przygotuj się do walki -- by odgadnąć rodzaj potwora i zwiększyć swoje szanse na wygraną.",
     "zakończ                -- by zakończyć grę.",
     "Żadne zwierze nie ucierpiało podczas tworzenia tej gry"
   ]
@@ -43,8 +42,8 @@ type Path = String
 
 type Person = String
 
-data TimeOfDay = Day | Night
-  deriving (Eq)
+data TimeOfDay = Dzień | Noc -- polish here for show method 
+  deriving (Eq, Show)
 
 data Location = Location
   { people :: [Person],
@@ -94,8 +93,8 @@ initialState =
       facts = Set.empty,
       hp = 100,
       enemyHp = 100,
-      timeOfDay = Day,
-      dayTurnCounter = 0,
+      timeOfDay = Dzień,
+      dayTurnCounter = 7,
       attackStrength = 10
     }
 
@@ -120,9 +119,7 @@ describeItem "Statua" = " Analiza Gerwanta z Riviery: \"Medalion Drży. To magic
 describeItem _ = "Nie ma takiego przedmiotu."
 
 describeLocation :: String -> String
-describeLocation "ŚwiętyDąb" = "Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni.\
-\Towarzyszy mu jedynie deszcz i jego wierny koń Piwonia.\
-\Pewnego popołudnia dociera do Świętego Dębu.\
+describeLocation "ŚwiętyDąb" = "Gerwant dociera do Świętego Dębu.\ 
 \Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią."
 describeLocation "WieśGrobla" = "Gerwant dociera do Wsi Grobla."
 describeLocation "DomSołtysa" = "Zabójca potworów wchodzi do domu sołtysa"
@@ -130,9 +127,9 @@ describeLocation "Karczma" = "Gerwant wchodzi do Karczmy"
 describeLocation "PolanaKołoChatyDrwali" = "Zabójca potworów znajduje się na polanie wokoło Chaty Drwali."
 describeLocation "ChataDrwali" = "Łowca potworów wchodzi do Chaty Drwali"
 describeLocation "Puszcza" = "Mistrz Gerwant wkracza w samo serce puszczy."
-describeLocation "Karczma" = "Gerwant z Riviery wchodzi do pieczary. \
+describeLocation "Pieczara" = "Gerwant z Riviery wchodzi do pieczary. \
 \Gerwant wnioskuje, że natrafił na leże potwora. \
-\Monstrum nie ma w jaskini, więc może na niego zaczekać (komenda przygotujSięDoWalki). \
+\Monstrum nie ma w jaskini, więc może na niego zaczekać (komenda przygotuj się do walki). \
 \Aczkolwiek zanim wiedźmin zdecyduje się na spotkanie oko w oko z bestia \
 \powinien się porządnie przygotować, a zatem musi wywnioskować z jakim potworem ma do czynienia."
 
@@ -167,14 +164,12 @@ go src path = do
     Just loc -> do
       game <- get
       put $ game {location = loc}
-      advanceDay
       return True
     Nothing -> do
       game <- get 
-      if "ŚwiętyDąb" == src && path == "PolanaKołoChatyDrwali" && "OdkrytePolana" `elem` (facts game)
+      if "ŚwiętyDąb" == src && path == "wschód" && "OdkrytePolana" `elem` (facts game)
         then do
           put $ game {location = "PolanaKołoChatyDrwali"}
-          advanceDay
           return True
       else return False
 
@@ -311,15 +306,16 @@ checkIfAddGnomskiGwyhyr itemSrc  = do
       put $ 
         game { itemLocations = Map.insert "WieśGrobla"  ( Set.insert "GnomskiGwyhyr" items) (itemLocations game) }
 
-advanceDay :: Monad m => StateT GameState m TimeOfDay
-advanceDay = do
+advanceTime :: Monad m => StateT GameState m String
+advanceTime = do
   game <- get
+  put $ game {dayTurnCounter = (dayTurnCounter game) + 1}
   if dayTurnCounter game == 11
     then do
-      let newTimeOfDay = if timeOfDay game == Day then Night else Day
+      let newTimeOfDay = if timeOfDay game == Dzień then Noc else Dzień
       put $ game {dayTurnCounter = 0, timeOfDay = newTimeOfDay}
-      return newTimeOfDay
-    else return $ timeOfDay game
+      return $ "Nastała nowa pora dnia " ++ (show (timeOfDay game)) ++ ". Godzina to " ++ (show (dayTurnCounter game)) ++ "."
+    else return  $ "Godzina to " ++ (show (dayTurnCounter game)) ++ "."
 
 -- command line logic
 
@@ -344,6 +340,8 @@ checkNumArgs num args expr =
 
 gameLoop :: StateT GameState IO ()
 gameLoop = do
+  dayTimeStinng <- advanceTime
+  lift $ putStrLn $ dayTimeStinng
   cmd <- lift readCommand
   case cmd of
     ("polecenia" : args) -> checkNumArgs 0 args do
@@ -403,6 +401,9 @@ gameLoop = do
           monster <- lift readCommand
           case monster of
             ["leszy"] -> do
+              lift $ putStrLn "Poprawna odpowiedź. Gerwant warzy odpowiednie eliksiry, które poprawią jego zdolności bojowe"
+              boostAttack 5 -- boost for correct anwser
+            ["Leszy"] -> do
               lift $ putStrLn "Poprawna odpowiedź. Gerwant warzy odpowiednie eliksiry, które poprawią jego zdolności bojowe"
               boostAttack 5 -- boost for correct anwser
             _ -> do
