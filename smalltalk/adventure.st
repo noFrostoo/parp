@@ -311,17 +311,17 @@ Object subclass: Game [
 
             cmd.
             (cmdWordsNumber = 1) ifTrue: [
-                (cmd at: 1) = 'polecenia' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'polecenia' ifTrue: [
                     self printInstructions.
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'ewkipunek' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'ewkipunek' ifTrue: [
 
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'zakończ' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'zakończ' ifTrue: [
                     isGameOver := true.
                     isUnknown := false
                 ]
@@ -330,38 +330,38 @@ Object subclass: Game [
 
 
             (cmdWordsNumber = 2) ifTrue: [
-                (cmd at: 1) = 'rozmawiaj' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'rozmawiaj' ifTrue: [
                     self talkTo: (cmd at: 2).
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' & isUnknown ifTrue: [
+                isUnknown & (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' ifTrue: [
                     (cmd) printNl.
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'obejrzyj' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'obejrzyj' ifTrue: [
                     (cmd) printNl.
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'idź' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'idź' ifTrue: [
                     (cmd) printNl.
                     (cmd at: 1) printNl.
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'podnieś' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'podnieś' ifTrue: [
 
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'utrać' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'utrać' ifTrue: [
 
                     isUnknown := false
                 ].
 
-                (cmd at: 1) = 'rozejrzyj' & (cmd at: 2) = 'się' & isUnknown ifTrue: [
+                isUnknown & (cmd at: 1) = 'rozejrzyj' & (cmd at: 2) = 'się' ifTrue: [
                     (cmd) printNl.
                     isUnknown := false
                 ]
@@ -370,7 +370,7 @@ Object subclass: Game [
 
 
             (cmdWordsNumber = 3) ifTrue: [
-                (cmd at: 1) = 'spytaj' & isUnknown ifTrue: [
+                isUnknown & (cmd at: 1) = 'spytaj' ifTrue: [
                     self askPerson: (cmd at: 2) about: (cmd at: 3).
                     isUnknown := false
                 ]
@@ -379,7 +379,7 @@ Object subclass: Game [
 
 
             (cmdWordsNumber = 4) ifTrue: [
-                (cmd at: 1) = 'przygotuj' & (cmd at: 2) = 'się' & (cmd at: 3) = 'do' & (cmd at: 4) = 'walki' & isUnknown  ifTrue: [
+                isUnknown & (cmd at: 1) = 'przygotuj' & (cmd at: 2) = 'się' & (cmd at: 3) = 'do' & (cmd at: 4) = 'walki' ifTrue: [
                     isUnknown := false
                 ].
             ].
