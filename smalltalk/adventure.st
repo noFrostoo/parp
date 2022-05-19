@@ -74,13 +74,13 @@ Object subclass: Game [
         inventory := Set new.
 
         locationDescription := Dictionary new.
-        locationDescription at: 'ŚwiętyDąb' put: 'Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni. Towarzyszy mu jedynie deszcz i jego wierny koń Piwonia. Pewnego popołudnia dociera do Świętego Dębu. Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.'.
-        locationDescription at: 'WieśGrobla' put: 'Gerwant dociera do Wsi Grobla.'.
-        locationDescription at: 'DomSołtysa' put: 'Zabójca potworów wchodzi do domu sołtysa.'.
-        locationDescription at: 'Karczma' put: 'Gerwant wchodzi do Karczmy.'.
-        locationDescription at: 'PolanaKołoChatyDrwali' put: 'Zabójca potworów znajduje się na polanie wokoło Chaty Drwali.'.
-        locationDescription at: 'ChataDrwali' put: 'Łowca potworów wchodzi do Chaty Drwali.'.
-        locationDescription at: 'Puszcza' put: 'Mistrz Gerwant wkracza w samo serce puszczy.'.
+        locationDescription at: 'ŚwiętyDąb' put: #( 'Gerwant dociera do Świętego Dębu.' 'Niestety te sakramentalne miejsce zostało zbrukane ludzką krwią.' '').
+        locationDescription at: 'WieśGrobla' put: #('Gerwant dociera do Wsi Grobla.' '').
+        locationDescription at: 'DomSołtysa' put: #('Zabójca potworów wchodzi do domu sołtysa.' '').
+        locationDescription at: 'Karczma' put: #('Gerwant wchodzi do Karczmy.' '').
+        locationDescription at: 'PolanaKołoChatyDrwali' put: #('Zabójca potworów znajduje się na polanie wokoło Chaty Drwali.' '').
+        locationDescription at: 'ChataDrwali' put: #('Łowca potworów wchodzi do Chaty Drwali.' '').
+        locationDescription at: 'Puszcza' put: #('Mistrz Gerwant wkracza w samo serce puszczy.' '').
 
         itemLocations := Dictionary new.
         itemLocations at: 'ŚwiętyDąb' put: #('Ciało' 'Totem').
@@ -92,17 +92,23 @@ Object subclass: Game [
         itemLocations at: 'Puszcza' put: #('Statua').
         
         itemDescription := Dictionary new.
-        itemDescription at: 'Totem' put: 'Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie.'.
-        itemDescription at: 'Ciało' put: 'Analiza Wiedźmina: Rany od szponów i kłów.'.
-        itemDescription at: 'Studnia' put: 'Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni.'.
-        itemDescription at: 'GnomskiGwyhyr' put: 'Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy.'.
-        itemDescription at: 'Tablica Ogłoszeń' put: 'Nie ma takiego przedmiotu.'.
-        itemDescription at: 'CidaryjskaPrzeszywanica' put: 'Przeszywanica popularna pośród piechurów w Cidaris.'.
-        itemDescription at: 'Trup' put: 'Analiza Gerwanta z Riviery: "Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki"'.
-        itemDescription at: 'Topór' put: 'Analiza Gerwanta z Riviery: "W rysach topora zastała się zaschnięta krew zwierzęcia"'.
-        itemDescription at: 'Czaszka' put: 'Gerwanta z Riviery: "Ta czaszka należy do młodego niedźwiedzia"'.
-        itemDescription at: 'Mieszek' put: 'Mieszek pełen złota. W środku znajduje się 10 monet. Wystarczy na piwo.'.
-        itemDescription at: 'Statua' put: 'Analiza Gerwanta z Riviery: "Medalion Drży. To magiczny totem. Podobny totem widziałem pod Świętym dębem". Wiedźmin postanawia przeczytać bestiariusz. W wiedźmińskim almanachu Gerwant znajduje informację, że magiczne totemy to znak rozpoznawczny terytorium potwora zwanego jako *Leszy*.'.
+        itemDescription at: 'Totem' put: #('Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie.' '').
+        itemDescription at: 'Ciało' put: #('Analiza Wiedźmina: Rany od szponów i kłów.' '').
+        itemDescription at: 'Studnia' put: #('Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni.' '').
+        itemDescription at: 'GnomskiGwyhyr' put: #('Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy.' '').
+        itemDescription at: 'Tablica Ogłoszeń' put: #('Nie ma takiego przedmiotu.' '').
+        itemDescription at: 'CidaryjskaPrzeszywanica' put: #('Przeszywanica popularna pośród piechurów w Cidaris.' '').
+        itemDescription at: 'Trup' put: #('Analiza Gerwanta z Riviery: "Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki"' '').
+        itemDescription at: 'Topór' put: #('Analiza Gerwanta z Riviery: "W rysach topora zastała się zaschnięta krew zwierzęcia"' '').
+        itemDescription at: 'Czaszka' put: #('Gerwanta z Riviery: "Ta czaszka należy do młodego niedźwiedzia"' '').
+        itemDescription at: 'Mieszek' put: #('Mieszek pełen złota. W środku znajduje się 10 monet. Wystarczy na piwo.' '').
+        itemDescription at: 'Statua' put: #(
+            'Analiza Gerwanta z Riviery: "Medalion Drży. To magiczny totem. Podobny totem widziałem pod Świętym dębem".'
+            'Wiedźmin postanawia przeczytać bestiariusz.'
+            ''
+            ' W wiedźmińskim almanachu Gerwant znajduje informację, że magiczne totemy to znak rozpoznawczny terytorium potwora zwanego jako *Leszy*.' 
+            ''
+        ).
 
         paths := Dictionary new.
         paths at: 'ŚwiętyDąb' put: #(('północ' 'WieśGrobla')).
@@ -115,13 +121,23 @@ Object subclass: Game [
         paths at: 'Pieczara' put: #(('wyjdź' 'Puszcza')).
 
         npcDialog := Dictionary new.
-        npcDialog at: 'Wieśniak' put: 'Wieśniak jest sparaliżowany strachem i majaczy.'.
-        npcDialog at: 'Drwale' put: 'Dobre jest tutaj piwo!'.
-        npcDialog at: 'Karczmarz' put: 'Pordóżniku, zapraszam na piwo!'.
-        npcDialog at: 'Sołtys' put: 'Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski. Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*.'.
+        npcDialog at: 'Wieśniak' put: #('Wieśniak jest sparaliżowany strachem i majaczy.' '').
+        npcDialog at: 'Drwale' put: #('Dobre jest tutaj piwo!' '').
+        npcDialog at: 'Karczmarz' put: #('Pordóżniku, zapraszam na piwo!' '').
+        npcDialog at: 'Sołtys' put: #(
+            'Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski.'
+            'Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*.'
+            '').
 
         npcAskAbout := Dictionary new.
-        npcAskAbout at: #('Drwale' 'atak') put: 'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'.
+        npcAskAbout at: #('Drwale' 'atak') put: #(
+            'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości.'
+            'Następnie napadły ich wilki. 
+            Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
+            ''
+            'Gerwant może teraz udać się na wschód od lokacji *ŚwiętyDąb*'
+            ''
+            ).
 
         itemStrengthBoost := Dictionary new.
         itemStrengthBoost at: 'GnomskiGwyhyr' put: 110.
@@ -170,24 +186,29 @@ Object subclass: Game [
     ]
 
     lookAround [
-        (locationDescription at: location) printNl.
-        'Znajdują się tu następujące osoby:' printNl.
-        npcLocations at: location do: [ :npc |
-            '  - ' print.
-            npc printNl.
+        | npcLocationsHere itemLocationsHere pathsHere |
+        self printLines: (locationDescription at: location).
+
+        self printLines: #('Znajdują się tu następujące osoby:').
+        npcLocationsHere := npcLocations at: location.
+        npcLocationsHere do: [ :npc |
+            self printLines: npc
         ].
-        '' printNl.
-        'Znajdują się tu następujące przedmioty:' printNl.
-        itemLocations at: location do: [ :item |
-            '  - ' print.
-            item printNl.
+        self printLines: #('').
+
+        self printLines: #('Znajdują się tu następujące przedmioty:').
+        itemLocationsHere := itemLocations at: location.
+        itemLocationsHere do: [ :item |
+            self printLines: item
         ].
-        '' printNl.
-        'Gerwant może stąd pójść w następujących kierunkach:' printNl.
-        paths at: location do: [ :path |
-            '  - ' print.
-            (path at: 1) printNl.
-        ]
+        self printLines: #('').
+
+        self printLines: #('Gerwant może stąd pójść w następujących kierunkach:').
+        pathsHere := paths at: location.
+        pathsHere do: [ :path |
+            self printLines: ( path at: 1 )
+        ].
+        self printLines: #('')
     ]
 
     pickUp: item [
@@ -302,6 +323,7 @@ Object subclass: Game [
         self printIntroduction.
         self printInstructions.
 
+
         "Game loop."
         [isGameOver] whileFalse: [
 
@@ -336,33 +358,27 @@ Object subclass: Game [
                 ].
 
                 isUnknown & (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' ifTrue: [
-                    (cmd) printNl.
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'obejrzyj' ifTrue: [
-                    (cmd) printNl.
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'idź' ifTrue: [
-                    (cmd) printNl.
-                    (cmd at: 1) printNl.
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'podnieś' ifTrue: [
-
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'utrać' ifTrue: [
-
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'rozejrzyj' & (cmd at: 2) = 'się' ifTrue: [
-                    (cmd) printNl.
+                    self lookAround.
                     isUnknown := false
                 ]
             ].
