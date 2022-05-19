@@ -411,6 +411,10 @@ gameLoop = do
               boostAttack (-5)
         else lift $ putStrLn "To miejsce jest spokojne. Po co Gerwant miałby przygotowywać się do walki?"
       gameLoop
+    ("attakuj" : args) -> checkNumArgs 0 args do
+      desc <- attack
+      lift $ putStrLn desc
+      gameLoop
     ("zakończ" : _) -> return ()
     _ -> do
       lift $ putStr "Nieznane polecenie. Wpisz 'polecenia' by wyświetlić listę."
