@@ -88,7 +88,8 @@ initialState =
         ("Karczma", []),
         ("PolanaKołoChatyDrwali", ["CidaryjskaPrzeszywanica", "Trup"]),
         ("ChataDrwali", ["Topór", "Czaszka", "Mieszek"]),
-        ("Puszcza", ["Statua"])
+        ("Puszcza", ["Statua"]),
+        ("Pieczara", [])
       ],
       facts = Set.empty,
       hp = 100,
@@ -106,7 +107,7 @@ describeItem "Ciało" = "Analiza Wiedźmina: Rany od szponów i kłów."
 
 describeItem "Studnia" = " Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni."
 describeItem "GnomskiGwyhyr" = "Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy."
-describeItem "TablicaOgłoszeń" = "Nie ma takiego przedmiotu."
+describeItem "TablicaOgłoszeń" = "Gerwant znajduje Zlecenie na *Potwora Lasu* z podpisem *sołtys* wsi Grobla"
 
 describeItem "CidaryjskaPrzeszywanica" = "Przeszywanica popularna pośród piechurów w Cidaris"
 describeItem "Trup" = "Analiza Gerwanta z Riviery: \"Poturbowany i mocno poobijany. Krew nie została wyssana, ale był pogryziony przez wilki\""
@@ -188,7 +189,7 @@ lookAround = do
         ++ intercalate "\n" (map ("  - " ++) itemsInLoc)
         ++ "\n\nGerwant może stąd pójść w następujących kierunkach:\n"
         ++ intercalate "\n" (map ("  - " ++) exitsInLoc)
-        ++ if "ŚwiętyDąb" == (location game)  && "OdkrytePolana" `elem` (facts game) then "\n   - PolanaKołoChatyDrwali" else ""
+        ++ if "ŚwiętyDąb" == (location game)  && "OdkrytePolana" `elem` (facts game) then "\n  - wschód" else ""
 
 pickUp :: Monad m => Item -> StateT GameState m Bool
 pickUp item = do
@@ -237,7 +238,7 @@ askPerson person topic = do
   let people_loc = people cur_loc
   if person `elem` people_loc
     then do
-      when (person == "Drwale" && topic == "atak") do
+      when (person == "Drwale" && (topic == "atak" || topic == "Atak"))do
         put $
           game
             { facts = Set.insert "OdkrytePolana" (facts game)
@@ -270,8 +271,8 @@ attack = do
   if location game == "Pieczara"
     then if enemyHp game > 0
       then do
-        let gerwantAttack = max (enemyHp game) (attackStrength game)
-        let enemyAttack = max (hp game) 15
+        let gerwantAttack = min (enemyHp game) (attackStrength game)
+        let enemyAttack = min (hp game) 15
         let gerwantHpAfter = hp game - enemyAttack
         let enemyHpAfter = enemyHp game - gerwantAttack
         put $
@@ -279,7 +280,7 @@ attack = do
             { enemyHp = enemyHpAfter,
               hp = gerwantHpAfter
             }
-        when (gerwantHpAfter <= 0) (put initialState)
+        when (gerwantHpAfter <= 0 && enemyHpAfter > 0) (put initialState)
         return $ "Gerwant atakuje za " ++ show gerwantAttack ++ " pkt.\n"
           ++ if enemyHpAfter <= 0
             then "Potwór pada martwy od ciosu."
@@ -314,8 +315,8 @@ advanceTime = do
     then do
       let newTimeOfDay = if timeOfDay game == Dzień then Noc else Dzień
       put $ game {dayTurnCounter = 0, timeOfDay = newTimeOfDay}
-      return $ "Nastała nowa pora dnia " ++ (show (timeOfDay game)) ++ ". Godzina to " ++ (show (dayTurnCounter game)) ++ "."
-    else return  $ "Godzina to " ++ (show (dayTurnCounter game)) ++ "."
+      return $ "Nastała nowa pora dnia " ++ (show (timeOfDay game)) ++ ". Godzina: " ++ (show (dayTurnCounter game)) ++ "."
+    else return  $ "Godzina: " ++ (show (dayTurnCounter game)) ++ "."
 
 -- command line logic
 
@@ -370,7 +371,7 @@ gameLoop = do
       gameLoop
     ("ekwipunek" : args) -> checkNumArgs 0 args do
       game <- get
-      lift $ putStrLn $ unlines $ map describeItem (Set.toList $ inventory game)
+      lift $ putStrLn $ unlines $ (Set.toList $ inventory game)
       gameLoop
     ("obejrzyj" : args) -> checkNumArgs 1 args do
       checkIfAddGnomskiGwyhyr $ head args
@@ -393,6 +394,7 @@ gameLoop = do
       if success
         then lift $ putStrLn "Gerwant pije piwo. Żywotność zostaje przywrócona."
         else lift $ putStrLn "Nie masz wystarczająco złota."
+      gameLoop
     ("przygotuj" : "się" : "do" : "walki" : args) -> checkNumArgs 0 args do
       game <- get
       if location game == "Pieczara"
@@ -411,10 +413,11 @@ gameLoop = do
               boostAttack (-5)
         else lift $ putStrLn "To miejsce jest spokojne. Po co Gerwant miałby przygotowywać się do walki?"
       gameLoop
-    ("attakuj" : args) -> checkNumArgs 0 args do
+    ("atakuj" : args) -> checkNumArgs 0 args do
       desc <- attack
       lift $ putStrLn desc
-      gameLoop
+      when (desc /= "Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.\nGra zaczyna się od początku.")
+        gameLoop
     ("zakończ" : _) -> return ()
     _ -> do
       lift $ putStr "Nieznane polecenie. Wpisz 'polecenia' by wyświetlić listę."
