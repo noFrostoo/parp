@@ -277,26 +277,21 @@ Object subclass: Game [
         hp := hp - enemyAttack.
         enemyHp := enemyHp - gerwantAttack.
 
-        'Gerwant atakuje za ' print.
-        gerwantAttack printLn.
+        self printLines: ('Gerwant atakuje za ' gerwantAttack).
         enemyHp = 0 ifTrue: [
-            'Potwór pada martwy od ciosu.' printLn.
+            self printLines: ('Potwór pada martwy od ciosu.'). 
             ^nil
         ].
 
-        'Potwór atakuje za ' print.
-        enemyAttack printLn.
+        self printLines: ('Potwór atakuje za ' enemyAttack).
         hp = 0 ifTrue: [
-            'Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.' printLn.
-            'Gra zaczyna się od początku.' printLn.
+            self printLines: ('Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.').
+            self printLines: ('Gra zaczyna się od początku.').
             self init.
             ^nil
         ].
 
-        'Zdrowie Gerwanta wynosi ' print.
-        hp printLn.
-        'Zdrowie potwora wynosi ' print.
-        enemyHp printLn.
+        self printLines: ('Zdrowie Gerwanta wynosi ' hp 'Zdrowie potwora wynosi' enemyHp)
     ]
 
     interact: item [
