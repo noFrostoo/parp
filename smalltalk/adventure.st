@@ -28,7 +28,8 @@ Object subclass: Game [
         paths 
         npcAskAbout
         itemStrengthBoost
-        npcLocations|
+        npcLocations
+        emptyString |
 
     introductionText := #(
         'Gerwant z Riviery, szkoły nosacza, podróżuje szlakami Królestw Północy już wiele dni.'
@@ -63,6 +64,7 @@ Object subclass: Game [
     ]
 
     init [
+        emptyString := ' '.
         isGameOver := false.
         hp := 100.
         enemyHp := 100.
@@ -94,7 +96,7 @@ Object subclass: Game [
         itemDescription := Dictionary new.
         itemDescription at: 'Totem' put: #('Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie.' '').
         itemDescription at: 'Ciało' put: #('Analiza Wiedźmina: Rany od szponów i kłów.' '').
-        itemDescription at: 'Studnia' put: #('Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni.' '').
+        itemDescription at: 'Studnia' put: #('Rivierijczyk zauważa *GnomskiGwyhyr* na dnie studni.' '').
         itemDescription at: 'GnomskiGwyhyr' put: #('Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy.' '').
         itemDescription at: 'Tablica Ogłoszeń' put: #('Nie ma takiego przedmiotu.' '').
         itemDescription at: 'CidaryjskaPrzeszywanica' put: #('Przeszywanica popularna pośród piechurów w Cidaris.' '').
@@ -159,8 +161,13 @@ Object subclass: Game [
         anArray do: [ :string | Transcript show: string; cr ]
     ]
 
+    printLinesNoNewLine: anArray [
+        anArray do: [ :string | Transcript show: string]
+    ]
+
     printIntroduction [
        self printLines: introductionText.
+       self lookAround
     ]
 
     printInstructions [
@@ -173,16 +180,17 @@ Object subclass: Game [
     ]
 
     go: path [
-        | exits newLoc |
-        exits := paths at: location
-        exits do: [ 
-            :exit |
+        | exits |
+        exits := paths at: location.
+        exits do: [ :exit |
             (exit at: 1) = path ifTrue: [
-                location := exit at: 2.
-                ^true
-            ].
+                location := (exit at: 2).
+                self lookAround.
+                ^nil
+            ]
         ].
-        ^false
+        self printLines: #('Nie ma takiej ścieżki').
+        ^nil
     ]
 
     lookAround [
@@ -192,74 +200,86 @@ Object subclass: Game [
         self printLines: #('Znajdują się tu następujące osoby:').
         npcLocationsHere := npcLocations at: location.
         npcLocationsHere do: [ :npc |
-            self printLines: npc
+            self printLines: (Array with: npc)
         ].
         self printLines: #('').
 
         self printLines: #('Znajdują się tu następujące przedmioty:').
         itemLocationsHere := itemLocations at: location.
         itemLocationsHere do: [ :item |
-            self printLines: item
+            self printLines: (Array with: item)
         ].
         self printLines: #('').
 
         self printLines: #('Gerwant może stąd pójść w następujących kierunkach:').
         pathsHere := paths at: location.
         pathsHere do: [ :path |
-            self printLines: ( path at: 1 )
+            self printLines: ( Array with: (path at: 1) )
         ].
         self printLines: #('')
     ]
 
     pickUp: item [
-        itemLocations at: location includes: item
+        ((itemLocations at: location) includes: item)
             ifTrue: [
-                itemLocations at: location remove: item.
+                | itemLocationsHere |
+                itemLocationsHere := (itemLocations at: location).
+                itemLocationsHere select: [:e | e ~~ item].
+                itemLocations at: location put: itemLocationsHere.
                 inventory add: item.
-                itemStrengthBoost includes: item ifTrue: [attackStrength := attackStrength + (itemStrengthBoost at: item)].
+                self printLinesNoNewLine: #('Gerwant podnosi '). 
+                self printLines: (Array with: item).
+                (itemStrengthBoost includesKey: item) 
+                    ifTrue: [
+                        attackStrength := attackStrength + (itemStrengthBoost at: item)
+                    ].
                 ^true
             ].
+        self printLines: #('Nie ma tu takiego przedmiotu' '').
         ^false
     ]
 
     dropItem: item [
-        inventory includes: item
+        (inventory includes: item)
             ifTrue: [
-                inventory remove: item.
+                inventory select: [:e | e ~~ item].
+                "TODO to dodawanie nie działa"
                 itemLocations at: location add: item.
-                itemStrengthBoost includes: item ifTrue: [attackStrength := attackStrength - (itemStrengthBoost at: item)].
+                (itemStrengthBoost includesKey: item) 
+                    ifTrue: [
+                        attackStrength := attackStrength - (itemStrengthBoost at: item)
+                    ].
                 ^true
             ].
+        self printLines: #('Nie posiadasz takiego przedmiotu' '').
         ^false
     ]
 
     talkTo: person [
         | people |
         people := npcLocations at: location.
-        people do: [
-            :p |
-            p == person
-                ifTrue: [
-                    ^npcDialog at: person
-                ]
-        ].
+        (people includes: person)
+            ifNotNil: [
+                ^(npcDialog at: person)
+            ].
         ^'Nie ma tu takiej osoby' 
     ]
 
     askPerson: person about:topic [
-        person == 'Drwale' and topic == 'atak'
+        person == 'Drwale' & topic == 'atak'
             ifTrue: [
                 paths at: 'ŚwiętyDąb' add: #('wschód' 'PolanaKołoChatyDrwali').
-                ^'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu'
+                ^'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
             ].
         ^'Nie możesz zapytać tej osoby o ten temat'
     ]
 
     buyBeer [
-        inventory includes: 'Mieszek' and location = 'Karczma'
+        inventory includes: 'Mieszek' & location = 'Karczma'
             ifTrue: [
                 inventory remove: 'Mieszek'.
-                hp = 100.
+                hp = hp + 50.
+                self printLines: #('Piwo wzmacnia Gerwanta. Gerwant zyskuje 50hp.').
                 ^true
             ].
         ^false
@@ -272,18 +292,21 @@ Object subclass: Game [
         enemyHp <= 0
             ifFalse: [^'Potwór jest już martwy'].
         
-        gerwantAttack := enemyHp max: attackStrength.
-        enemyAttack := hp max: 15.
+        gerwantAttack := enemyHp min: attackStrength.
+        enemyAttack := hp min: 15.
         hp := hp - enemyAttack.
         enemyHp := enemyHp - gerwantAttack.
 
-        self printLines: ('Gerwant atakuje za ' gerwantAttack).
+
+        self printLinesNoNewLine: #('Gerwant atakuje za '). 
+        self printLines: (Array with: gerwantAttack).
         enemyHp = 0 ifTrue: [
-            self printLines: ('Potwór pada martwy od ciosu.'). 
+            self printLines: #('Potwór pada martwy od ciosu.'). 
             ^nil
         ].
 
-        self printLines: ('Potwór atakuje za ' enemyAttack).
+        self printLinesNoNewLine: #('Potwór atakuje za '). 
+        self printLines: (Array with: enemyAttack).
         hp = 0 ifTrue: [
             self printLines: ('Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.').
             self printLines: ('Gra zaczyna się od początku.').
@@ -291,24 +314,35 @@ Object subclass: Game [
             ^nil
         ].
 
-        self printLines: ('Zdrowie Gerwanta wynosi ' hp 'Zdrowie potwora wynosi' enemyHp)
+        self printLinesNoNewLine: #('Zdrowie Gerwanta wynosi '). 
+        self printLines: (Array with: hp).
+        self printLinesNoNewLine: #('Zdrowie potwora wynosi ').
+        self printLines: (Array with: enemyHp).
     ]
 
     interact: item [
         | items |
-        item == 'Studnia' and location == 'WieśGrobla'
+        item = 'Studnia' & location = 'WieśGrobla'
             ifTrue: [
-                (itemLocations at: 'WieśGrobla') add: 'GnomskiGwyhyr'
+                itemLocations at: 'WieśGrobla' put: #('Studnia' 'Tablica Ogłoszeń' 'GnomskiGwyhyr')
             ].
         items := itemLocations at: location.
         items do: [
             :i |
-            i == item
+            i = item
                 ifTrue: [
-                    ^itemDescription at: item.
+                    ^(itemDescription at: item)
                 ]
         ].
         ^'Nie ma tu takiego przedmiotu' 
+    ]
+
+    dispInventory [
+        inventory do: [
+            :item |
+            self printLinesNoNewLine: (Array with: item).
+            self printLines: (itemDescription at: item).
+        ]
     ]
 
     "Run the game."
@@ -333,8 +367,8 @@ Object subclass: Game [
                     isUnknown := false
                 ].
 
-                isUnknown & (cmd at: 1) = 'ewkipunek' ifTrue: [
-
+                isUnknown & (cmd at: 1) = 'ekwipunek' ifTrue: [
+                    self dispInventory.
                     isUnknown := false
                 ].
 
@@ -348,27 +382,32 @@ Object subclass: Game [
 
             (cmdWordsNumber = 2) ifTrue: [
                 isUnknown & (cmd at: 1) = 'rozmawiaj' ifTrue: [
-                    self talkTo: (cmd at: 2).
+                    self printLines: (self talkTo: (cmd at: 2)).
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'kup' & (cmd at: 2) = 'piwo' ifTrue: [
+                    self buyBeer.
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'obejrzyj' ifTrue: [
+                    self printLines: (self interact: (cmd at: 2)).
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'idź' ifTrue: [
+                    self go: (cmd at: 2).
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'podnieś' ifTrue: [
+                    self pickUp: (cmd at: 2).
                     isUnknown := false
                 ].
 
                 isUnknown & (cmd at: 1) = 'utrać' ifTrue: [
+                    self dropItem: (cmd at: 2).
                     isUnknown := false
                 ].
 
@@ -391,8 +430,9 @@ Object subclass: Game [
 
             (cmdWordsNumber = 4) ifTrue: [
                 isUnknown & (cmd at: 1) = 'przygotuj' & (cmd at: 2) = 'się' & (cmd at: 3) = 'do' & (cmd at: 4) = 'walki' ifTrue: [
+                    self attack.
                     isUnknown := false
-                ].
+                ]
             ].
 
             
