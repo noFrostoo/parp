@@ -134,8 +134,8 @@ Object subclass: Game [
         npcAskAbout := Dictionary new.
         npcAskAbout at: #('Drwale' 'atak') put: #(
             'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości.'
-            'Następnie napadły ich wilki. 
-            Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
+            'Następnie napadły ich wilki.' 
+            'Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
             ''
             'Gerwant może teraz udać się na wschód od lokacji *ŚwiętyDąb*'
             ''
@@ -220,21 +220,24 @@ Object subclass: Game [
     ]
 
     pickUp: item [
-        ((itemLocations at: location) includes: item)
-            ifTrue: [
-                | itemLocationsHere |
-                itemLocationsHere := (itemLocations at: location).
-                itemLocationsHere select: [:e | e ~~ item].
-                itemLocations at: location put: itemLocationsHere.
-                inventory add: item.
-                self printLinesNoNewLine: #('Gerwant podnosi '). 
-                self printLines: (Array with: item).
-                (itemStrengthBoost includesKey: item) 
-                    ifTrue: [
-                        attackStrength := attackStrength + (itemStrengthBoost at: item)
-                    ].
-                ^true
+        ((itemLocations at: location) includes: item) ifTrue: [
+            | itemLocationsHere |
+            itemLocationsHere := Set new.
+            (itemLocations at: location) do: [ :i |
+                i ~= item ifTrue: [
+                    itemLocationsHere add: i
+                ]
             ].
+            itemLocations at: location put: itemLocationsHere.
+            inventory add: item.
+            self printLinesNoNewLine: #('Gerwant podnosi '). 
+            self printLines: (Array with: item).
+            (itemStrengthBoost includesKey: item) 
+                ifTrue: [
+                    attackStrength := attackStrength + (itemStrengthBoost at: item)
+                ].
+            ^true
+        ].
         self printLines: #('Nie ma tu takiego przedmiotu' '').
         ^false
     ]
@@ -242,13 +245,20 @@ Object subclass: Game [
     dropItem: item [
         (inventory includes: item)
             ifTrue: [
-                inventory select: [:e | e ~~ item].
-                "TODO to dodawanie nie działa"
-                itemLocations at: location add: item.
-                (itemStrengthBoost includesKey: item) 
-                    ifTrue: [
-                        attackStrength := attackStrength - (itemStrengthBoost at: item)
-                    ].
+                | newInventory |
+                newInventory := Set new.
+                inventory do: [ :i |
+                     i ~= item ifTrue: [
+                        newInventory add: i
+                    ]
+                ].
+                inventory := newInventory.
+                (itemLocations at: location) add: item.
+                self printLinesNoNewLine: #('Gerwant traci '). 
+                self printLines: (Array with: item).
+                (itemStrengthBoost includesKey: item) ifTrue: [
+                    attackStrength := attackStrength - (itemStrengthBoost at: item)
+                ].
                 ^true
             ].
         self printLines: #('Nie posiadasz takiego przedmiotu' '').
@@ -258,27 +268,44 @@ Object subclass: Game [
     talkTo: person [
         | people |
         people := npcLocations at: location.
-        (people includes: person)
-            ifNotNil: [
-                ^(npcDialog at: person)
-            ].
-        ^'Nie ma tu takiej osoby' 
+        (people includes: person) ifTrue: [
+            ^(npcDialog at: person)
+        ].
+        ^#('Nie ma tu takiej osoby') 
     ]
 
     askPerson: person about:topic [
-        person == 'Drwale' & topic == 'atak'
-            ifTrue: [
-                paths at: 'ŚwiętyDąb' add: #('wschód' 'PolanaKołoChatyDrwali').
-                ^'Grupa drwali odpowiada, że zobaczyła wysokiego potwora z drewna i kości. Następnie zaatakowały ich wilki. Zostali zaatakowani koło Chaty drwali na *wschód* od Świętego Dębu.'
+        | people |
+        people := npcLocations at: location.
+        (people includes: person) ifTrue: [
+            (npcAskAbout keys) do: [ :pair |
+                (pair at: 1) = person & (pair at: 2) = topic ifTrue: [
+                    (pair at: 1) = 'Drwale' & (pair at: 2) = 'atak' ifTrue: [ 
+                        | newPaths |
+                        newPaths := #(('północ' 'WieśGrobla') ('wschód' 'PolanaKołoChatyDrwali')).
+                        paths at: 'ŚwiętyDąb' put:  newPaths
+                    ].
+                    ^(npcAskAbout at: pair)
+                ]
             ].
-        ^'Nie możesz zapytać tej osoby o ten temat'
+            ^#('Nie możesz zapytać tej osoby o ten temat')
+        ].
+        ^#('Nie ma tu takiej osoby')
     ]
 
     buyBeer [
         inventory includes: 'Mieszek' & location = 'Karczma'
             ifTrue: [
-                inventory remove: 'Mieszek'.
-                hp = hp + 50.
+                | newInventory |
+                newInventory := Set new.
+                inventory do: [ :i |
+                     i ~= 'Mieszek' ifTrue: [
+                        newInventory add: i
+                    ]
+                ].
+                inventory := newInventory.
+
+                hp := hp + 50.
                 self printLines: #('Piwo wzmacnia Gerwanta. Gerwant zyskuje 50hp.').
                 ^true
             ].
@@ -286,61 +313,58 @@ Object subclass: Game [
     ]
 
     attack [
-        | gerwantAttack enemyAttack gerwantHpAfter enemyHpAfter |
-        location = 'Pieczara'
-            ifFalse: [^'To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje.'].
-        enemyHp <= 0
-            ifFalse: [^'Potwór jest już martwy'].
-        
-        gerwantAttack := enemyHp min: attackStrength.
-        enemyAttack := hp min: 15.
-        hp := hp - enemyAttack.
-        enemyHp := enemyHp - gerwantAttack.
-
-
-        self printLinesNoNewLine: #('Gerwant atakuje za '). 
-        self printLines: (Array with: gerwantAttack).
-        enemyHp = 0 ifTrue: [
-            self printLines: #('Potwór pada martwy od ciosu.'). 
-            ^nil
+        | gerwantAttack enemyAttack |
+        location = 'Pieczara' ifFalse: [
+            ^#('To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje.')
         ].
+        [1 = 1] whileTrue: [
+            gerwantAttack := enemyHp min: attackStrength.
+            enemyAttack := hp min: 15.
 
-        self printLinesNoNewLine: #('Potwór atakuje za '). 
-        self printLines: (Array with: enemyAttack).
-        hp = 0 ifTrue: [
-            self printLines: ('Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.').
-            self printLines: ('Gra zaczyna się od początku.').
-            self init.
-            ^nil
-        ].
+            enemyHp := enemyHp - gerwantAttack.
+            self printLinesNoNewLine: #('Gerwant atakuje za '). 
+            gerwantAttack printNl.
+            enemyHp <= 0 ifTrue: [
+                ^#('Potwór ginie martwy')
+            ].
 
-        self printLinesNoNewLine: #('Zdrowie Gerwanta wynosi '). 
-        self printLines: (Array with: hp).
-        self printLinesNoNewLine: #('Zdrowie potwora wynosi ').
-        self printLines: (Array with: enemyHp).
+            hp := hp - enemyAttack.
+            self printLinesNoNewLine: #('Potwór atakuje za '). 
+            enemyAttack printNl.
+            hp <= 0 ifTrue: [
+                self printLines: #('Wiedźmin pada od ciosu potwora. Gerwant umarł, a cała płeć żeńska na kontynencie uroniła łzę.' '' '' '============================' 'Gra zaczyna się od początku.' '============================' '' '' '' '').
+                self init.
+                self run.
+                ^#(' ')
+            ].
+
+            self printLinesNoNewLine: #('Zdrowie Gerwanta wynosi '). 
+            hp printNl.
+            self printLinesNoNewLine: #('Zdrowie potwora wynosi ').
+            enemyHp printNl
+        ]
     ]
 
     interact: item [
         | items |
-        item = 'Studnia' & location = 'WieśGrobla'
-            ifTrue: [
-                itemLocations at: 'WieśGrobla' put: #('Studnia' 'Tablica Ogłoszeń' 'GnomskiGwyhyr')
-            ].
+        item = 'Studnia' & location = 'WieśGrobla' ifTrue: [
+            itemLocations at: 'WieśGrobla' put: #('Studnia' 'Tablica Ogłoszeń' 'GnomskiGwyhyr')
+        ].
         items := itemLocations at: location.
         items do: [
             :i |
-            i = item
-                ifTrue: [
-                    ^(itemDescription at: item)
-                ]
+            i = item ifTrue: [
+                ^(itemDescription at: item)
+            ]
         ].
-        ^'Nie ma tu takiego przedmiotu' 
+        ^#('Nie ma tu takiego przedmiotu') 
     ]
 
     dispInventory [
         inventory do: [
             :item |
             self printLinesNoNewLine: (Array with: item).
+            self printLinesNoNewLine: #(' - ').
             self printLines: (itemDescription at: item).
         ]
     ]
@@ -421,7 +445,7 @@ Object subclass: Game [
 
             (cmdWordsNumber = 3) ifTrue: [
                 isUnknown & (cmd at: 1) = 'spytaj' ifTrue: [
-                    self askPerson: (cmd at: 2) about: (cmd at: 3).
+                    self printLines: (self askPerson: (cmd at: 2) about: (cmd at: 3)).
                     isUnknown := false
                 ]
             ].
@@ -430,7 +454,7 @@ Object subclass: Game [
 
             (cmdWordsNumber = 4) ifTrue: [
                 isUnknown & (cmd at: 1) = 'przygotuj' & (cmd at: 2) = 'się' & (cmd at: 3) = 'do' & (cmd at: 4) = 'walki' ifTrue: [
-                    self attack.
+                     self printLines: (self attack).
                     isUnknown := false
                 ]
             ].
@@ -443,5 +467,4 @@ Object subclass: Game [
         ]
     ]
 ]
-
 Game new run.
