@@ -317,6 +317,9 @@ Object subclass: Game [
         location = 'Pieczara' ifFalse: [
             ^#('To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje.')
         ].
+
+        " TODO ask for monster and if given correct answer add power"
+
         [1 = 1] whileTrue: [
             gerwantAttack := enemyHp min: attackStrength.
             enemyAttack := hp min: 15.
