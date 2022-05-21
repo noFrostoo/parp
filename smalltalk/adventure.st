@@ -20,7 +20,7 @@ Object subclass: Game [
         hp 
         enemyHp 
         timeOfDay 
-        dayTurnCounter 
+        hour 
         attackStrength
         itemDescription
         locationDescription
@@ -68,8 +68,8 @@ Object subclass: Game [
         isGameOver := false.
         hp := 100.
         enemyHp := 100.
-        dayTurnCounter := 0.
-        timeOfDay := 'Day'.
+        hour := 14.
+        timeOfDay := 'Dzień'.
         attackStrength := 10.
         facts := Set new.
         location := 'ŚwiętyDąb'.
@@ -128,7 +128,8 @@ Object subclass: Game [
         npcDialog at: 'Karczmarz' put: #('Pordóżniku, zapraszam na piwo!' '').
         npcDialog at: 'Sołtys' put: #(
             'Gerwant z Riviery pyta o zlecenie na potwora. Sołtys opowiada mu o atakach potwora w lasach na południe od wioski.'
-            'Proponuje porozmawiać z *ocalałymi drwalami*, przesiadującymi w karczmie i spytać ich o *atak*.'
+            'Proponuje porozmawiać z ocalałymi *drwalami*, przesiadującymi w karczmie i spytać ich o *atak*.'
+            'Pamiętaj tylko, że *Drwale* są w *Karczmie* wyłącznie w nocy.'
             '').
 
         npcAskAbout := Dictionary new.
@@ -150,7 +151,7 @@ Object subclass: Game [
         npcLocations at: 'ŚwiętyDąb' put: #('Wieśniak').
         npcLocations at: 'WieśGrobla' put: #().
         npcLocations at: 'DomSołtysa' put: #('Sołtys').
-        npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
+        npcLocations at: 'Karczma' put: #('Karczmarz').
         npcLocations at: 'PolanaKołoChatyDrwali' put: #().
         npcLocations at: 'ChataDrwali' put: #().
         npcLocations at: 'Puszcza' put: #()
@@ -313,12 +314,21 @@ Object subclass: Game [
     ]
 
     attack [
-        | gerwantAttack enemyAttack |
-        location = 'Pieczara' ifFalse: [
+        | gerwantAttack enemyAttack userAnswer|
+        "location = 'Pieczara' ifFalse: [
             ^#('To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje.')
-        ].
+        ]."
 
-        " TODO ask for monster and if given correct answer add power"
+        self printLines: #('Do walki z jakim potworem musi się przygotować Gerwant?').
+        userAnswer := self readCommand.
+        userAnswer = 'Leszy' | userAnswer = 'leszy' ifTrue: [
+            self printLines: #('Gerwant dobrze przygotował się do nadchodzącej walki, jego szanse na zwycięstwo się zwiększyły!').
+            attackStrength := attackStrength * 1.5.
+        ].
+        userAnswer = 'Leszy' | userAnswer = 'leszy' ifFalse: [
+            self printLines: #('Gerwant nie przygotował się dobrze do nadchodzącej walki, potwór go zaskoczył.').
+            attackStrength := attackStrength * 0.7.
+        ].
 
         [1 = 1] whileTrue: [
             gerwantAttack := enemyHp min: attackStrength.
@@ -328,6 +338,7 @@ Object subclass: Game [
             self printLinesNoNewLine: #('Gerwant atakuje za '). 
             gerwantAttack printNl.
             enemyHp <= 0 ifTrue: [
+                isGameOver := true. 
                 ^#('Potwór ginie martwy')
             ].
 
@@ -378,6 +389,7 @@ Object subclass: Game [
 
         self printIntroduction.
         self printInstructions.
+        
 
 
         "Game loop."
@@ -385,9 +397,24 @@ Object subclass: Game [
 
             isUnknown := true.
             cmd := self readCommand substrings: ' '.
-            cmdWordsNumber := cmd size.
+            cmdWordsNumber := cmd size. 
 
-            cmd.
+            (cmd at: 1) = 'zakończ' ifFalse: [
+                hour := hour + 1.
+                self printLinesNoNewLine: #('Godzina: '). 
+                hour printNl.
+                hour = 8 ifTrue: [
+                    npcLocations at: 'Karczma' put: #('Karczmarz').
+                    timeOfDay := 'Dzień'.
+                    self printLines: #('Nastał dzień')
+                ].
+                hour = 20 ifTrue: [
+                    npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
+                    timeOfDay := 'Noc'.
+                    self printLines: #('Nastała noc')
+                ]
+            ].
+
             (cmdWordsNumber = 1) ifTrue: [
                 isUnknown & (cmd at: 1) = 'polecenia' ifTrue: [
                     self printInstructions.
