@@ -84,6 +84,13 @@ Object subclass: Game [
         locationDescription at: 'PolanaKołoChatyDrwali' put: #('Zabójca potworów znajduje się na polanie wokoło Chaty Drwali.' '').
         locationDescription at: 'ChataDrwali' put: #('Łowca potworów wchodzi do Chaty Drwali.' '').
         locationDescription at: 'Puszcza' put: #('Mistrz Gerwant wkracza w samo serce puszczy.' '').
+        locationDescription at: 'Pieczara' put: #('Gerwant z Riviery wchodzi do pieczary.' 
+            'Gerwant wnioskuje, że natrafił na leże potwora.' 
+            'Monstrum nie ma w jaskini, więc może na niego zaczekać [komenda przygotuj się do walki].' 
+            'Aczkolwiek zanim wiedźmin zdecyduje się na spotkanie oko w oko z bestia' 
+            'powinien się porządnie przygotować, a zatem musi wywnioskować z jakim potworem ma do czynienia.' 
+        '').
+
 
         itemLocations := Dictionary new.
         itemLocations at: 'ŚwiętyDąb' put: #('Ciało' 'Totem').
@@ -93,7 +100,9 @@ Object subclass: Game [
         itemLocations at: 'PolanaKołoChatyDrwali' put: #('CidaryjskaPrzeszywanica' 'Trup').
         itemLocations at: 'ChataDrwali' put: #('Topór' 'Czaszka' 'Mieszek').
         itemLocations at: 'Puszcza' put: #('Statua').
-        
+        itemLocations at: 'Pieczara' put: #().
+
+
         itemDescription := Dictionary new.
         itemDescription at: 'Totem' put: #('Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie.' '').
         itemDescription at: 'Ciało' put: #('Analiza Wiedźmina: Rany od szponów i kłów.' '').
@@ -155,7 +164,8 @@ Object subclass: Game [
         npcLocations at: 'Karczma' put: #('Karczmarz').
         npcLocations at: 'PolanaKołoChatyDrwali' put: #().
         npcLocations at: 'ChataDrwali' put: #().
-        npcLocations at: 'Puszcza' put: #()
+        npcLocations at: 'Puszcza' put: #().
+        npcLocations at: 'Pieczara' put: #()
     ]
 
     "Print strings from array in separate lines."
@@ -296,8 +306,7 @@ Object subclass: Game [
     ]
 
     buyBeer [
-        inventory includes: 'Mieszek' & location = 'Karczma'
-            ifTrue: [
+        (inventory includes: 'Mieszek') & (location = 'Karczma') ifTrue: [
                 | newInventory |
                 newInventory := Set new.
                 inventory do: [ :i |
@@ -322,16 +331,16 @@ Object subclass: Game [
 
         self printLines: #('Do walki z jakim potworem musi się przygotować Gerwant?').
         userAnswer := self readCommand.
-        userAnswer = 'Leszy' | userAnswer = 'leszy' ifTrue: [
+        (userAnswer = 'Leszy') | (userAnswer = 'leszy') ifTrue: [
             self printLines: #('Gerwant dobrze przygotował się do nadchodzącej walki, jego szanse na zwycięstwo się zwiększyły!').
             attackStrength := attackStrength * 1.5.
         ].
-        userAnswer = 'Leszy' | userAnswer = 'leszy' ifFalse: [
+        (userAnswer = 'Leszy') | (userAnswer = 'leszy') ifFalse: [
             self printLines: #('Gerwant nie przygotował się dobrze do nadchodzącej walki, potwór go zaskoczył.').
             attackStrength := attackStrength * 0.7.
         ].
 
-        [1 = 1] whileTrue: [
+        [true] whileTrue: [
             gerwantAttack := enemyHp min: attackStrength.
             enemyAttack := hp min: 15.
 
