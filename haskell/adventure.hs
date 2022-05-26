@@ -32,6 +32,7 @@ instructionsText =
     "rozmawiaj <npc>        -- by porozmawiać z NPC.",
     "spytaj <npc> <coś>     -- by spytać NPC o coś.",
     "rozejrzyj się          -- by dowiedzieć się, gdzie jesteś.",
+    "odpoczywaj             -- by zmienic pore dnia",    
     "zakończ                -- by zakończyć grę.",
     "Żadne zwierze nie ucierpiało podczas tworzenia tej gry"
   ]
@@ -107,7 +108,7 @@ describeItem :: Item -> String
 describeItem "Totem" = "Analiza Gerwanta z Riviery: Totem został zbudowany ze szczątek i poroża jelenia. To wygląda na ostrzeżenie."
 describeItem "Ciało" = "Analiza Wiedźmina: Rany od szponów i kłów."
 
-describeItem "Studnia" = " Rivierijczyk zauważa *gnomskiGwyhyr* na dnie studni."
+describeItem "Studnia" = " Rivierijczyk zauważa *GnomskiGwyhyr* na dnie studni."
 describeItem "GnomskiGwyhyr" = "Gwyhyr wykuty przez gnomy. Jest sprawnie naostrzony. Na klindze ma wyryte runy."
 describeItem "TablicaOgłoszeń" = "Gerwant znajduje Zlecenie na *Potwora Lasu* z podpisem *sołtys* wsi Grobla"
 
@@ -255,12 +256,12 @@ askPerson person topic = do
 buyBeer :: Monad m => StateT GameState m Bool
 buyBeer = do
   game <- get
-  if "mieszek" `elem` inventory game
+  if "Mieszek" `elem` inventory game
     then do
       let items = fromMaybe Set.empty (Map.lookup (location game) (itemLocations game))
       put $
         game
-          { inventory = Set.delete "mieszek" (inventory game),
+          { inventory = Set.delete "Mieszek" (inventory game),
             hp = 100
           }
       return True
