@@ -96,8 +96,8 @@ initialState =
       facts = Set.empty,
       hp = 100,
       enemyHp = 100,
-      timeOfDay = Dzień,
-      dayTurnCounter = 6,
+      timeOfDay = Noc,
+      dayTurnCounter = 5,
       attackStrength = 10
     }
 
