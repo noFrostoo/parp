@@ -43,16 +43,17 @@ Object subclass: Game [
     instructionsText := #(
         'Dostępne polecenia:'
         ''
-        'polecenia              -- by wyświetlić listę poleceń.'
-        'idź <kierunek>         -- by pójść w danym kierunku.'
-        'podnieś <przedmiot>    -- by podnieść przedmiot.'
-        'upuść <przedmiot>      -- by upuścić przedmiot.'
-        'ekwipunek              -- by sprawdzić ekwipunek.'
-        'obejrzyj <przedmiot>   -- by obejrzeć przedmiot.'
-        'rozmawiaj <npc>        -- by porozmawiać z NPC.'
-        'spytaj <npc> <coś>     -- by spytać NPC o coś.'
-        'rozejrzyj się          -- by dowiedzieć się, gdzie jesteś.'
-        'zakończ                -- by zakończyć grę.'
+        'polecenia                 -- by wyświetlić listę poleceń.'
+        'idź <kierunek>            -- by pójść w danym kierunku.'
+        'podnieś <przedmiot>       -- by podnieść przedmiot.'
+        'upuść <przedmiot>         -- by upuścić przedmiot.'
+        'ekwipunek                 -- by sprawdzić ekwipunek.'
+        'obejrzyj <przedmiot>      -- by obejrzeć przedmiot.'
+        'rozmawiaj <npc>           -- by porozmawiać z NPC.'
+        'spytaj <npc> <coś>        -- by spytać NPC o coś.'
+        'rozejrzyj się             -- by dowiedzieć się, gdzie jesteś.'
+        'odpocznij <ilość godzin>  -- by odpocząć o określoną liczbę godzin.'
+        'zakończ                   -- by zakończyć grę.'
         ''
     ).
  
@@ -68,7 +69,7 @@ Object subclass: Game [
         isGameOver := false.
         hp := 100.
         enemyHp := 100.
-        hour := 14.
+        hour := 10.
         timeOfDay := 'Dzień'.
         attackStrength := 10.
         facts := Set new.
@@ -374,6 +375,22 @@ Object subclass: Game [
         ^#('Nie ma tu takiego przedmiotu') 
     ]
 
+    changeHour: hours [
+        hour := (hour + hours) \\ 24.
+        self printLinesNoNewLine: #('Godzina: '). 
+        hour printNl.
+        (hour >= 8) & (hour < 20) ifTrue: [
+            npcLocations at: 'Karczma' put: #('Karczmarz').
+            timeOfDay := 'Dzień'.
+            self printLines: #('Nastał dzień')
+        ].
+        (hour < 8) | (hour >= 20) ifTrue: [
+            npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
+            timeOfDay := 'Noc'.
+            self printLines: #('Nastała noc')
+        ]
+    ]
+
     dispInventory [
         inventory do: [
             :item |
@@ -399,22 +416,6 @@ Object subclass: Game [
             cmd := self readCommand substrings: ' '.
             cmdWordsNumber := cmd size. 
 
-            (cmd at: 1) = 'zakończ' ifFalse: [
-                hour := hour + 1.
-                self printLinesNoNewLine: #('Godzina: '). 
-                hour printNl.
-                hour = 8 ifTrue: [
-                    npcLocations at: 'Karczma' put: #('Karczmarz').
-                    timeOfDay := 'Dzień'.
-                    self printLines: #('Nastał dzień')
-                ].
-                hour = 20 ifTrue: [
-                    npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
-                    timeOfDay := 'Noc'.
-                    self printLines: #('Nastała noc')
-                ]
-            ].
-
             (cmdWordsNumber = 1) ifTrue: [
                 isUnknown & (cmd at: 1) = 'polecenia' ifTrue: [
                     self printInstructions.
@@ -435,6 +436,12 @@ Object subclass: Game [
 
 
             (cmdWordsNumber = 2) ifTrue: [
+                
+                isUnknown & (cmd at: 1) = 'rozmawiaj' ifTrue: [
+                    self printLines: (self talkTo: (cmd at: 2)).
+                    isUnknown := false
+                ].
+
                 isUnknown & (cmd at: 1) = 'rozmawiaj' ifTrue: [
                     self printLines: (self talkTo: (cmd at: 2)).
                     isUnknown := false
@@ -452,6 +459,17 @@ Object subclass: Game [
 
                 isUnknown & (cmd at: 1) = 'idź' ifTrue: [
                     self go: (cmd at: 2).
+                    self changeHour: 1.
+                    isUnknown := false
+                ].
+
+                isUnknown & (cmd at: 1) = 'odpocznij' ifTrue: [
+                    |hours|
+                    hours := ((cmd at: 2) asInteger).
+                    hours printNl.
+                    (hours = 0) ifFalse: [
+                        self changeHour: hours.
+                    ].
                     isUnknown := false
                 ].
 
