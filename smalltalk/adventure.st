@@ -381,13 +381,17 @@ Object subclass: Game [
         hour printNl.
         (hour >= 8) & (hour < 20) ifTrue: [
             npcLocations at: 'Karczma' put: #('Karczmarz').
+            (timeOfDay = 'Noc') ifTrue:[
+                self printLines: #('Nastał dzień')
+            ].
             timeOfDay := 'Dzień'.
-            self printLines: #('Nastał dzień')
         ].
         (hour < 8) | (hour >= 20) ifTrue: [
             npcLocations at: 'Karczma' put: #('Drwale' 'Karczmarz').
+            (timeOfDay = 'Dzień') ifTrue:[
+                self printLines: #('Nastała noc')
+            ].
             timeOfDay := 'Noc'.
-            self printLines: #('Nastała noc')
         ]
     ]
 
