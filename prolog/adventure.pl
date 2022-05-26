@@ -3,6 +3,7 @@
 :- retractall(w_lokacji(_, _)), retractall(jestem_w(_)), retractall(alive(_)), retractall(has(_)).
 :- discontiguous obejrzyj/1, obejrzyjOK/1, ścieżka/3, obejrzyjOK/1, jest/2, rozmawiajOK/1, w_lokacji/2, wEkwipunku/1, spytajOK/2.
 
+
 /*==========================================
 ============================================
 
