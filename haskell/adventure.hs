@@ -11,6 +11,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import System.IO
 import Data.Set (toList)
+import Language.Haskell.TH (Lit(IntegerL))
+import Data.Char(digitToInt)
 
 -- game content
 
@@ -95,7 +97,7 @@ initialState =
       hp = 100,
       enemyHp = 100,
       timeOfDay = Dzień,
-      dayTurnCounter = 7,
+      dayTurnCounter = 6,
       attackStrength = 10
     }
 
@@ -164,8 +166,12 @@ go src path = do
   case Map.lookup src locations >>= (Map.lookup path . exits) of
     Just loc -> do
       game <- get
-      put $ game {location = loc}
-      return True
+      if "WieśGrobla" == src && path == "Karczma" && (timeOfDay game) == Noc
+        then do
+          return False
+      else do
+        put $ game {location = loc}
+        return True
     Nothing -> do
       game <- get 
       if "ŚwiętyDąb" == src && path == "wschód" && "OdkrytePolana" `elem` (facts game)
@@ -307,16 +313,43 @@ checkIfAddGnomskiGwyhyr itemSrc  = do
       put $ 
         game { itemLocations = Map.insert "WieśGrobla"  ( Set.insert "GnomskiGwyhyr" items) (itemLocations game) }
 
-advanceTime :: Monad m => StateT GameState m String
+advanceTime:: Monad m => StateT GameState m String
 advanceTime = do
   game <- get
-  put $ game {dayTurnCounter = (dayTurnCounter game) + 1}
-  if dayTurnCounter game == 11
-    then do
-      let newTimeOfDay = if timeOfDay game == Dzień then Noc else Dzień
-      put $ game {dayTurnCounter = 0, timeOfDay = newTimeOfDay}
+  let timeOfDayBefore = (timeOfDay game)
+  put $ game {dayTurnCounter = ((dayTurnCounter game) + 1)}
+  
+  game <- get
+
+  when ((dayTurnCounter game) == 24) do
+    put $ game {dayTurnCounter = 0}
+  
+  game <- get
+  
+  when ((dayTurnCounter game) == 8) do 
+      put $ game {timeOfDay = Dzień}
+  when  ((dayTurnCounter game) == 20)do
+      put $ game { timeOfDay = Noc}
+  
+  game <- get
+
+  if timeOfDayBefore /= (timeOfDay game) then
+    return $ "Nastała nowa pora dnia " ++ (show (timeOfDay game)) ++ ". Godzina: " ++ (show (dayTurnCounter game)) ++ "."
+  else
+    return $ "Godzina to " ++ (show (dayTurnCounter game)) ++ "."
+
+changeDayOfTime:: Monad m => StateT GameState m String
+changeDayOfTime = do
+  game <- get
+  if (timeOfDay game) == Dzień 
+    then do 
+      put $ game {dayTurnCounter = 20, timeOfDay = Noc}
+      game <- get
       return $ "Nastała nowa pora dnia " ++ (show (timeOfDay game)) ++ ". Godzina: " ++ (show (dayTurnCounter game)) ++ "."
-    else return  $ "Godzina: " ++ (show (dayTurnCounter game)) ++ "."
+    else do
+      put $ game {dayTurnCounter = 8, timeOfDay = Dzień}
+      game <- get
+      return $ "Nastała nowa pora dnia " ++ (show (timeOfDay game)) ++ ". Godzina: " ++ (show (dayTurnCounter game)) ++ "."
 
 -- command line logic
 
@@ -350,6 +383,9 @@ gameLoop = do
       gameLoop
     ("idź" : args) -> checkNumArgs 1 args do
       game <- get
+      when ("WieśGrobla" == (location game) && (head args) == "Karczma" && (timeOfDay game) == Noc) do
+          lift $ putStrLn $ "Dzwi zamknięte, na dzwiach pisze ze karczma jest zamknięta w nocy"
+          gameLoop
       success <- go (location game) (head args)
       if success
         then do
@@ -388,6 +424,10 @@ gameLoop = do
     ("rozejrzyj" : "się" : args) -> checkNumArgs 0 args do
       desc <- lookAround
       lift $ putStrLn desc
+      gameLoop
+    ("odpoczywaj" : args) -> checkNumArgs 0 args do
+      dayTimeStinng <- changeDayOfTime
+      lift $ putStrLn "Gerwant odpoczywa"
       gameLoop
     ("kup" : "piwo" : args) -> checkNumArgs 0 args do
       success <- buyBeer
