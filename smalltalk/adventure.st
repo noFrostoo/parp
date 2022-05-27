@@ -325,9 +325,9 @@ Object subclass: Game [
 
     attack [
         | gerwantAttack enemyAttack userAnswer|
-        "location = 'Pieczara' ifFalse: [
+        location = 'Pieczara' ifFalse: [
             ^#('To miejsce jest spokojne. Gerwant nie chce wszczynać burd, więc nikogo nie atakuje.')
-        ]."
+        ].
 
         self printLines: #('Do walki z jakim potworem musi się przygotować Gerwant?').
         userAnswer := self readCommand.
