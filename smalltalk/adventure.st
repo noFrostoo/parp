@@ -479,7 +479,6 @@ Object subclass: Game [
                 isUnknown & (cmd at: 1) = 'odpocznij' ifTrue: [
                     |hours|
                     hours := ((cmd at: 2) asInteger).
-                    hours printNl.
                     (hours = 0) ifFalse: [
                         self changeHour: hours.
                     ].
