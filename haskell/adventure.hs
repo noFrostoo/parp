@@ -59,9 +59,9 @@ locations =
     ("WieśGrobla", Location [] [("Karczma", "Karczma"), ("DomSołtysa", "DomSołtysa"), ("południe", "ŚwiętyDąb")]),
     ("DomSołtysa", Location ["Sołtys"] [("wyjdź", "WieśGrobla")]),
     ("Karczma", Location ["Drwale", "Karczmarz"] [("wyjdź", "WieśGrobla")]),
-    ("PolanaKołoChatyDrwali", Location [] [("zachód", "ŚwiętyDąb"), ("chata", "ChataDrwali"), ("Puszcza", "Puszcza")]),
+    ("PolanaKołoChatyDrwali", Location [] [("zachód", "ŚwiętyDąb"), ("Chata", "ChataDrwali"), ("Puszcza", "Puszcza")]),
     ("ChataDrwali", Location [] [("wyjdź", "PolanaKołoChatyDrwali")]),
-    ("Puszcza", Location [] [("polana", "PolanaKołoChatyDrwali"), ("pieczara", "Pieczara")]),
+    ("Puszcza", Location [] [("Polana", "PolanaKołoChatyDrwali"), ("Pieczara", "Pieczara")]),
     ("Pieczara", Location [] [("wyjdź", "Puszcza")])
   ]
 
